@@ -3,7 +3,7 @@ using Core.ServiceDiscovery;
 using Microsoft.AspNetCore.Hosting;
 using System.Collections.Generic;
 
-namespace Core.Company.Account.Web.Startup
+namespace Core.Web.Startup
 {
     /// <summary>
     /// 

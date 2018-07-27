@@ -26,7 +26,6 @@
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Extensions\" />
     <Folder Include="Startup\" />
   </ItemGroup>
   <ItemGroup>
