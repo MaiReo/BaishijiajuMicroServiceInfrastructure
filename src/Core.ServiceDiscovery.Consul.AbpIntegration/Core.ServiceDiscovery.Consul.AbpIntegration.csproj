@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Core.ServiceDiscovery</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core.ServiceDiscovery.Consul\Core.ServiceDiscovery.Consul.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Abp" Version="3.8.0" />
+    <PackageReference Include="Abp.AspNetCore" Version="3.8.0" />
+  </ItemGroup>
+
+</Project>
