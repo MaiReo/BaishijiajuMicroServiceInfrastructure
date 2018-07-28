@@ -2,6 +2,7 @@
 using Core.ServiceDiscovery;
 using Microsoft.AspNetCore.Hosting;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Core.Web.Startup
 {
@@ -30,6 +31,6 @@ namespace Core.Web.Startup
         /// 
         /// </summary>
         /// <returns></returns>
-        protected override IEnumerable<string> ServiceTags => new[] { "core", "notification", "notification-apppush" };
+        protected override IEnumerable<string> ServiceTags => Enumerable.Empty<string>();
     }
 }
