@@ -58,7 +58,7 @@ namespace Core.Messages.Bus
         {
             var exceptions = new List<Exception>();
 
-            foreach (var handlerFactories in GetHandlerFactories(messageType))
+            foreach (var handlerFactories in GetHandlerFactories(messageType).ToList())
             {
                 foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
                 {
@@ -115,7 +115,7 @@ namespace Core.Messages.Bus
 
             await new SynchronizationContextRemover();
 
-            foreach (var handlerFactories in GetHandlerFactories(messageType))
+            foreach (var handlerFactories in GetHandlerFactories(messageType).ToList())
             {
                 foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
                 {

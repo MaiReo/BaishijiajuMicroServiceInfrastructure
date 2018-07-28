@@ -7,8 +7,8 @@ using System;
 
 namespace Core.Abstractions.TestBase
 {
-    public class AbstractionTestBase<TStartup, TDbContext> : AbstractionTestBase<TStartup> 
-        where TStartup :class
+    public class AbstractionTestBase<TStartup, TDbContext> : AbstractionTestBase<TStartup>
+        where TStartup : class
         where TDbContext : CorePersistentStoreDbContext
     {
         protected internal override ContainerBuilder RegisterRequiredServices(IServiceCollection services)
@@ -19,9 +19,7 @@ namespace Core.Abstractions.TestBase
                 opt =>
                 {
                     opt.UseInMemoryDatabase(databaseId);
-                },
-                contextLifetime: ServiceLifetime.Transient,
-                optionsLifetime: ServiceLifetime.Transient);
+                });
             return base.RegisterRequiredServices(services);
         }
         protected void UsingDbContext(Action<TDbContext> action)
@@ -34,10 +32,12 @@ namespace Core.Abstractions.TestBase
             try
             {
                 TestSession.Instance.City = new City(cityId);
-                using (var dbContext = Resolve<TDbContext>())
+                var dbContext = Resolve<TDbContext>();
+                action?.Invoke(dbContext);
+                dbContext.SaveChanges();
+                if (!UseScopedResover)
                 {
-                    action?.Invoke(dbContext);
-                    dbContext.SaveChanges();
+                    dbContext.Dispose();
                 }
             }
             finally
