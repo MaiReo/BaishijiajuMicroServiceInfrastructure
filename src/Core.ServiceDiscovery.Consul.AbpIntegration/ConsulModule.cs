@@ -31,8 +31,12 @@ namespace Abp.Modules
                     return action;
                 }),
                 Component
-                .For<IConsulClient>()
+                .For<IConsulClient, ConsulClient>()
                 .ImplementedBy<ConsulClient>()
+                .LifestyleSingleton(),
+                Component
+                .For<IKVEndpoint,KV>()
+                .ImplementedBy<KV>()
                 .LifestyleSingleton()
             );
         }

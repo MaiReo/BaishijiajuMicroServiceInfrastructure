@@ -20,6 +20,12 @@ namespace Core.ServiceDiscovery
             .As<IConsulClient>()
             .IfNotRegistered(typeof(IConsulClient))
             .SingleInstance();
+
+            builder.RegisterType<KV>()
+            .AsSelf()
+            .As<IKVEndpoint>()
+            .IfNotRegistered(typeof(IKVEndpoint))
+            .SingleInstance();
         }
     }
 }
