@@ -9,6 +9,12 @@ using System.Threading.Tasks;
 
 namespace Core.PersistentStore.Repositories
 {
+    public abstract class EFAsyncRepository<TEntity> : EFAsyncRepository<TEntity, int>, IAsyncRepository<TEntity> where TEntity : class, IEntity
+    {
+        protected EFAsyncRepository(DbContext dbContext) : base(dbContext)
+        {
+        }
+    }
     public abstract class EFAsyncRepository<TEntity, TKey> : IAsyncRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
     {
         protected EFAsyncRepository(DbContext dbContext)
