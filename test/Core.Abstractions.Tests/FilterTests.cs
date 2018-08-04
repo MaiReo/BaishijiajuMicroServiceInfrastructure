@@ -8,8 +8,10 @@ using Xunit;
 
 namespace Core.Abstractions.Tests
 {
-    public class CityFilterTests : AbstractionTestBase<RepositoryTests, TestDbContext>
+    public class FilterTests : AbstractionTestBase<RepositoryTests, TestDbContext>
     {
+
+        #region 城市过滤器
         [Fact(DisplayName = "城市过滤器")]
         public void CityId_Filter_Tests()
         {
@@ -54,5 +56,51 @@ namespace Core.Abstractions.Tests
                 context.TestEntityHasCities.Count().ShouldBe(2);
             });
         }
+        #endregion 城市过滤器
+
+        #region 公司过滤器
+        [Fact(DisplayName = "公司过滤器")]
+        public void Company_Filter_Test()
+        {
+            //Arrange
+            var companyId = Guid.NewGuid();
+
+            //Assert
+            UsingDbContext(TestConsts.CITY_ID, context =>
+            {
+                context.TestEntityHasCompanies.ShouldBeEmpty();
+            });
+            UsingDbContext(TestConsts.CITY_ID, companyId, context =>
+            {
+                context.TestEntityHasCompanies.ShouldBeEmpty();
+            });
+
+            //Act
+            UsingDbContext(TestConsts.CITY_ID, context =>
+            {
+                context.TestEntityHasCompanies.Add(new TestEntityHasCompany
+                {
+                    Name = "Host"
+                });
+            });
+            UsingDbContext(TestConsts.CITY_ID, companyId, context =>
+             {
+                 context.TestEntityHasCompanies.Add(new TestEntityHasCompany
+                 {
+                     Name = "Company"
+                 });
+             });
+            //Assert
+            UsingDbContext(TestConsts.CITY_ID, context => 
+            {
+                context.TestEntityHasCompanies.Single().Name.ShouldBe("Host");
+            });
+            UsingDbContext(TestConsts.CITY_ID, companyId, context =>
+            {
+                context.TestEntityHasCompanies.Single().Name.ShouldBe("Company");
+            });
+
+        }
+        #endregion 公司过滤器
     }
 }

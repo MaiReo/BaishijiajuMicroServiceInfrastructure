@@ -16,7 +16,7 @@ namespace Core.Abstractions.TestBase
 
         private ILifetimeScope _lifetimeScope;
 
-        protected IComponentContext IocResolver => UseScopedResover ? _lifetimeScope : _iocContainer;
+        protected IComponentContext IocResolver => UseScopedResolver ? _lifetimeScope : _iocContainer;
 
         public AbstractionTestBase()
         {
@@ -28,7 +28,7 @@ namespace Core.Abstractions.TestBase
 
         public IMessageBus MessageBus { get; private set; }
 
-        protected virtual bool UseScopedResover => true;
+        protected virtual bool UseScopedResolver => true;
 
         protected internal virtual ContainerBuilder RegisterRequiredServices(IServiceCollection services)
         {
