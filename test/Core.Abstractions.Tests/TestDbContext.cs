@@ -1,4 +1,5 @@
-﻿using Core.PersistentStore;
+﻿using System;
+using Core.PersistentStore;
 using Core.Session;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,9 @@ namespace Core.Abstractions.Tests
         public virtual DbSet<TestEntityTwo> TestEntityTwos { get; set; }
 
         public virtual DbSet<TestEntityHasCity> TestEntityHasCities { get; set; }
+
+
+        public virtual DbSet<TestEntityHasCompany> TestEntityHasCompanies { get; set; }
 
         public TestDbContext(DbContextOptions options, ICoreSession session) : base(options, session)
         {
@@ -32,5 +36,11 @@ namespace Core.Abstractions.Tests
     public class TestEntityTwo : Entity
     {
 
+    }
+
+    public class TestEntityHasCompany : Entity, IMayHaveCompany
+    {
+        public string Name { get; set; }
+        public Guid? BrokerCompanyId { get; set; }
     }
 }

@@ -19,7 +19,9 @@ namespace Core.PersistentStore
     {
         protected virtual ICoreSession Session { get; }
 
-        public string CurrentCityId => Session?.City?.Id;
+        protected virtual string CurrentCityId => Session?.City?.Id;
+
+        protected virtual Guid? CurrentCompanyId => Session?.Company?.Id;
 
         private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
 
@@ -67,7 +69,14 @@ namespace Core.PersistentStore
                     {
                         if (string.IsNullOrWhiteSpace(hasCityEntity.CityId))
                         {
-                            hasCityEntity.CityId = Session.City.Id;
+                            hasCityEntity.CityId = CurrentCityId;
+                        }
+                    }
+                    if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany mayHaveCompanyEntity)
+                    {
+                        if (!mayHaveCompanyEntity.BrokerCompanyId.HasValue)
+                        {
+                            mayHaveCompanyEntity.BrokerCompanyId = CurrentCompanyId;
                         }
                     }
                     if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IHasModificationTime hasModificationTimeEntityOnAdd)
@@ -131,7 +140,10 @@ namespace Core.PersistentStore
             {
                 return true;
             }
-
+            if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
             return false;
         }
 
@@ -155,6 +167,12 @@ namespace Core.PersistentStore
                  */
                 Expression<Func<TEntity, bool>> hasCityFilter = e => ((IHasCity)e).CityId == CurrentCityId || (((IHasCity)e).CityId != CurrentCityId && CurrentCityId == null);
                 expression = expression.AndAlsoOrDefault(hasCityFilter);
+            }
+
+            if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> mayHaveCompanyFilter = e => ((IMayHaveCompany)e).BrokerCompanyId == CurrentCompanyId;
+                expression = expression.AndAlsoOrDefault(mayHaveCompanyFilter);
             }
 
             return expression;

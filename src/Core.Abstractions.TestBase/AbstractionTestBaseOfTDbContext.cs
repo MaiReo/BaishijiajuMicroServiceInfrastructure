@@ -28,14 +28,21 @@ namespace Core.Abstractions.TestBase
         }
         protected void UsingDbContext(string cityId, Action<TDbContext> action)
         {
+            UsingDbContext(cityId, default, action);
+        }
+
+        protected void UsingDbContext(string cityId, Guid? companyId, Action<TDbContext> action)
+        {
             var oldCity = TestSession.Instance.City;
+            var oldCompany = TestSession.Instance.Company;
             try
             {
                 TestSession.Instance.City = new City(cityId);
+                TestSession.Instance.Company = new Company(companyId);
                 var dbContext = Resolve<TDbContext>();
                 action?.Invoke(dbContext);
                 dbContext.SaveChanges();
-                if (!UseScopedResover)
+                if (!UseScopedResolver)
                 {
                     dbContext.Dispose();
                 }
@@ -43,6 +50,7 @@ namespace Core.Abstractions.TestBase
             finally
             {
                 TestSession.Instance.City = oldCity;
+                TestSession.Instance.Company = oldCompany;
             }
 
         }
