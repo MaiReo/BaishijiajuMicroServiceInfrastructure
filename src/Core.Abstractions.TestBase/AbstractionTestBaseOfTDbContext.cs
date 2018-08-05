@@ -19,7 +19,8 @@ namespace Core.Abstractions.TestBase
                 opt =>
                 {
                     opt.UseInMemoryDatabase(databaseId);
-                });
+                },
+                contextLifetime: UseScopedResolver ? ServiceLifetime.Scoped : ServiceLifetime.Transient);
             return base.RegisterRequiredServices(services);
         }
         protected void UsingDbContext(Action<TDbContext> action)
