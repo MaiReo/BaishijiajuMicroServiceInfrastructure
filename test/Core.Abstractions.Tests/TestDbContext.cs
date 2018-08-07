@@ -38,9 +38,10 @@ namespace Core.Abstractions.Tests
 
     }
 
-    public class TestEntityHasCompany : Entity, IMayHaveCompany
+    public class TestEntityHasCompany : Entity, IMayHaveCompany, IHasCity
     {
         public string Name { get; set; }
         public Guid? BrokerCompanyId { get; set; }
+        public string CityId { get; set; }
     }
 }
