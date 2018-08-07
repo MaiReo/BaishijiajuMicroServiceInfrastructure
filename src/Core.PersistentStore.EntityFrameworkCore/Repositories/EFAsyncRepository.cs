@@ -105,5 +105,10 @@ namespace Core.PersistentStore.Repositories
             await DbContext.SaveChangesAsync(cancellationToken);
             return entry.Entity;
         }
+
+        public IQueryable<TEntity> GetAll()
+        {
+            return DbContext.Set<TEntity>();
+        }
     }
 }

@@ -54,5 +54,10 @@ namespace Core.PersistentStore.Repositories
         {
             return Task.FromResult(default(TEntity));
         }
+
+        public IQueryable<TEntity> GetAll()
+        {
+            return Enumerable.Empty<TEntity>().AsQueryable();
+        }
     }
 }

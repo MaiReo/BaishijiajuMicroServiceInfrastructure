@@ -19,5 +19,7 @@ namespace Core.PersistentStore.Repositories
         /// <param name="expression"></param>
         /// <returns></returns>
         T Query<T>(Func<IQueryable<TEntity>, T> predicate);
+
+        IQueryable<TEntity> GetAll();
     }
 }
