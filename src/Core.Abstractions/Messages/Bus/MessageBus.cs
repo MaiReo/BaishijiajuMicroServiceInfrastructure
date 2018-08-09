@@ -60,7 +60,7 @@ namespace Core.Messages.Bus
 
             foreach (var handlerFactories in GetHandlerFactories(messageType).ToList())
             {
-                foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
+                foreach (var handlerFactory in handlerFactories.MessageHandlerFactories.ToList())
                 {
                     var handlerType = handlerFactory.GetHandlerType();
 
@@ -117,7 +117,7 @@ namespace Core.Messages.Bus
 
             foreach (var handlerFactories in GetHandlerFactories(messageType).ToList())
             {
-                foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
+                foreach (var handlerFactory in handlerFactories.MessageHandlerFactories.ToList())
                 {
                     var handlerType = handlerFactory.GetHandlerType();
 
