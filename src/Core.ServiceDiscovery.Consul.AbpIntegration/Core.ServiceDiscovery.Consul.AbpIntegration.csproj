@@ -9,8 +9,8 @@
     <ProjectReference Include="..\Core.ServiceDiscovery.Consul\Core.ServiceDiscovery.Consul.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Abp" Version="3.8.0" />
-    <PackageReference Include="Abp.AspNetCore" Version="3.8.0" />
+    <PackageReference Include="Abp" Version="3.8.2" />
+    <PackageReference Include="Abp.AspNetCore" Version="3.8.2" />
   </ItemGroup>
 
 </Project>
