@@ -3,26 +3,27 @@ using System;
 
 namespace Core.Messages.Factories
 {
+    /// <summary>
+    /// Used to unregister a <see cref="IMessageHandlerFactory"/> on <see cref="Dispose"/> method.
+    /// </summary>
     internal class MessageHandlerFactoryUnregistrar : IDisposable
     {
-        /// <summary>
-        /// Used to unregister a <see cref="IEventHandlerFactory"/> on <see cref="Dispose"/> method.
-        /// </summary>
+       
 
-        private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
+        private readonly IMessageBus _messageBus;
         private readonly Type _messageType;
         private readonly IMessageHandlerFactory _factory;
 
-        public MessageHandlerFactoryUnregistrar(IMessageHandlerFactoryStore messageHandlerFactoryStore, Type messageType, IMessageHandlerFactory factory)
+        public MessageHandlerFactoryUnregistrar(IMessageBus messageBus, Type messageType, IMessageHandlerFactory factory)
         {
-            this._messageHandlerFactoryStore = messageHandlerFactoryStore;
+            this._messageBus = messageBus;
             this._messageType = messageType;
             this._factory = factory;
         }
 
         public void Dispose()
         {
-            this._messageHandlerFactoryStore.Unregister(_messageType, _factory);
+            this._messageBus.Unregister(_messageType, _factory);
         }
     }
 }

@@ -15,7 +15,7 @@ namespace Core.Messages.Factories
             HandlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
         }
 
-        public virtual IMessageHandler GetHandler(IServiceProvider serviceProvider)
+        public virtual IMessageHandler GetHandler()
         {
             return this._iocResolver.Resolve(HandlerType) as IMessageHandler;
         }

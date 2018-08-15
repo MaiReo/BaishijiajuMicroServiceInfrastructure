@@ -4,7 +4,7 @@ namespace Core.Messages.Factories
 {
     public interface IMessageHandlerFactory
     {
-        IMessageHandler GetHandler(IServiceProvider serviceProvider);
+        IMessageHandler GetHandler();
 
         Type GetHandlerType();
 

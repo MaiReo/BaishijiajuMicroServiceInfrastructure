@@ -11,7 +11,7 @@ namespace Core.Messages.Bus
     internal class MessageBusInstaller : IWindsorInstaller
     {
         private readonly IIocResolver _iocResolver;
-        private IMessageHandlerFactoryStore _messageHandlerFactoryStore;
+        private IMessageBus _messageBus;
 
         public MessageBusInstaller(IIocResolver iocResolver)
         {
@@ -21,14 +21,12 @@ namespace Core.Messages.Bus
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
             container.Register(
-                Component.For<IMessageHandlerFactoryStore>()
-                .Instance(MessageHandlerFactoryStore.Instance),
                 Component
                 .For<IMessageBus>()
                 .ImplementedBy<MessageBus>()
                 .LifestyleSingleton()
             );
-            _messageHandlerFactoryStore = container.Resolve<IMessageHandlerFactoryStore>();
+            _messageBus = container.Resolve<IMessageBus>();
             container.Kernel.ComponentRegistered += RegisterMessageHandler;
         }
 
@@ -52,7 +50,7 @@ namespace Core.Messages.Bus
                 var genericArgs = @interface.GetGenericArguments();
                 if (genericArgs.Length == 1)
                 {
-                    _messageHandlerFactoryStore.Register(genericArgs[0], new IocMessageHandlerFactory(_iocResolver, handler.ComponentModel.Implementation));
+                    _messageBus.Register(genericArgs[0], new IocMessageHandlerFactory(_iocResolver, handler.ComponentModel.Implementation));
                 }
             }
         }

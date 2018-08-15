@@ -1,7 +1,9 @@
-﻿using System.Linq.Expressions;
-
-namespace System.Linq
+﻿namespace Core.Linq.Extensions
 {
+    using System;
+    using System.Linq;
+    using System.Linq.Expressions;
+
     public static class LinqQueryableExtensions
     {
         public static IQueryable<T> WhereIf<T>(this IQueryable<T> source, bool condition, Expression<Func<T, bool>> expression)
@@ -16,8 +18,10 @@ namespace System.Linq
     }
 }
 
-namespace System.Collections.Generic
+namespace Core.Collection.Extensions
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     public static class LinqEnumerableExtensions
