@@ -14,21 +14,31 @@ namespace Core.Messages.Bus
 {
     public class MessageBus : IMessageBus
     {
+        /// <summary>
+        /// All registered handler factories.
+        /// Key: Type of the event
+        /// Value: List of handler factories
+        /// </summary>
+        private readonly ConcurrentDictionary<Type, ICollection<IMessageHandlerFactory>> _handlerFactories;
 
         private readonly IServiceProvider _serviceProvider;
-        private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
 
-        public MessageBus(IServiceProvider serviceProvider,
-            IMessageHandlerFactoryStore messageHandlerFactoryStore)
+        private MessageBus()
         {
+            _handlerFactories = new ConcurrentDictionary<Type, ICollection<IMessageHandlerFactory>>();
+        }
+
+        public MessageBus(IServiceProvider serviceProvider) : this()
+        {
+            _handlerFactories = new ConcurrentDictionary<Type, ICollection<IMessageHandlerFactory>>();
             this._serviceProvider = serviceProvider;
-            this._messageHandlerFactoryStore = messageHandlerFactoryStore;
         }
 
         /// <inheritdoc/>
         public virtual async Task PublishAsync<T>(T message) where T : IMessage
         {
-            if (!(this._serviceProvider.GetService(typeof(IMessagePublisher)) is IMessagePublisher messagePublisher))
+            var messagePublisher = (IMessagePublisher)this._serviceProvider.GetService(typeof(IMessagePublisher));
+            if (messagePublisher == null)
             {
                 return;
             }
@@ -166,7 +176,7 @@ namespace Core.Messages.Bus
 
         private void OnMessageReceivedHandlingException(IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
         {
-            var eventHandler = handlerFactory.GetHandler(this._serviceProvider);
+            var eventHandler = handlerFactory.GetHandler();
             try
             {
                 if (eventHandler == null)
@@ -199,7 +209,7 @@ namespace Core.Messages.Bus
 
         private async Task OnMessageReceivedAsyncHandlingException(IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
         {
-            var asyncEventHandler = asyncHandlerFactory.GetHandler(this._serviceProvider);
+            var asyncEventHandler = asyncHandlerFactory.GetHandler();
 
             try
             {
@@ -247,9 +257,16 @@ namespace Core.Messages.Bus
                 .Any(i => i.GetGenericTypeDefinition() == typeof(IAsyncMessageHandler<>));
         }
 
+
+
+        private ICollection<IMessageHandlerFactory> GetOrCreateHandlerFactories(Type eventType)
+        {
+            return _handlerFactories.GetOrAdd(eventType, (type) => new HashSet<IMessageHandlerFactory>(new MessageHandlerFactoryUniqueComparer()));
+        }
+
         private IEnumerable<MessageTypeWithMessageHandlerFactories> GetHandlerFactories(Type eventType)
         {
-            foreach (var handlerFactory in this._messageHandlerFactoryStore.GetHandlerFactories().Where(hf => ShouldTriggerMessageForHandler(eventType, hf.Key)))
+            foreach (var handlerFactory in this._handlerFactories.Where(hf => ShouldTriggerMessageForHandler(eventType, hf.Key)))
             {
                 yield return new MessageTypeWithMessageHandlerFactories(handlerFactory.Key, handlerFactory.Value);
             }
@@ -274,17 +291,19 @@ namespace Core.Messages.Bus
 
         public IEnumerable<Type> GetAllHandledMessageTypes()
         {
-            return this._messageHandlerFactoryStore.GetAllHandledMessageTypes();
+            return _handlerFactories.Keys;
         }
 
         public IDisposable Register(Type messageType, IMessageHandlerFactory factory)
         {
-            return this._messageHandlerFactoryStore.Register(messageType, factory);
+            GetOrCreateHandlerFactories(messageType)
+                .Locking(factories => factories.Add(factory));
+            return new MessageHandlerFactoryUnregistrar(this, messageType, factory);
         }
 
         public void Unregister(Type messageType, IMessageHandlerFactory factory)
         {
-            this._messageHandlerFactoryStore.Unregister(messageType, factory);
+            GetOrCreateHandlerFactories(messageType).Locking(factories => factories.Remove(factory));
         }
 
         private class MessageTypeWithMessageHandlerFactories

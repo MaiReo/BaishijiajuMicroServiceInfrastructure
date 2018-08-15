@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Core.Messages.Bus;
+using Core.Messages.Bus.Extensions;
 using Core.ServiceDiscovery;
 using Core.Session;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,8 @@ namespace Core.Abstractions.TestBase
             });
             services.AddServiceDiscovery(o => o.Address = ServiceDiscoveryConfiguration.DEFAULT_ADDRESS);
 
+            services.AddTransient<IMessageBus, MessageBus>();
+
             var containerBuilder = services.AddAutoFacWithConvention<TStartup>();
             var startupAssembly = typeof(TStartup).Assembly;
             var thisAssembly = typeof(AbstractionTestBase<>).Assembly;
@@ -74,6 +77,10 @@ namespace Core.Abstractions.TestBase
         private void ConstructProperties()
         {
             MessageBus = Resolve<IMessageBus>();
+            lock (MessageBus)
+            {
+                MessageBus.RegisterMessageHandlers(_iocContainer);
+            }
         }
 
         /// <summary>
