@@ -46,8 +46,6 @@ namespace Core.Abstractions.TestBase
             });
             services.AddServiceDiscovery(o => o.Address = ServiceDiscoveryConfiguration.DEFAULT_ADDRESS);
 
-            services.AddTransient<IMessageBus, MessageBus>();
-
             var containerBuilder = services.AddAutoFacWithConvention<TStartup>();
             var startupAssembly = typeof(TStartup).Assembly;
             var thisAssembly = typeof(AbstractionTestBase<>).Assembly;

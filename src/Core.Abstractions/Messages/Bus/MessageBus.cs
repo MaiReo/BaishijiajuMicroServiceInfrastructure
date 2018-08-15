@@ -30,7 +30,6 @@ namespace Core.Messages.Bus
 
         public MessageBus(IServiceProvider serviceProvider) : this()
         {
-            _handlerFactories = new ConcurrentDictionary<Type, ICollection<IMessageHandlerFactory>>();
             this._serviceProvider = serviceProvider;
         }
 
