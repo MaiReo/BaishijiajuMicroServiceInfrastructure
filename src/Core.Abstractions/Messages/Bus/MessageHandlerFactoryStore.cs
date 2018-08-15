@@ -3,7 +3,6 @@ using Core.Messages.Factories;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Core.Messages.Bus
 {
@@ -31,7 +30,7 @@ namespace Core.Messages.Bus
 
         private ICollection<IMessageHandlerFactory> GetOrCreateHandlerFactories(Type eventType)
         {
-            return _handlerFactories.GetOrAdd(eventType, (type) => new List<IMessageHandlerFactory>());
+            return _handlerFactories.GetOrAdd(eventType, (type) => new HashSet<IMessageHandlerFactory>(new MessageHandlerFactoryUniqueComparer()));
         }
 
         public void Unregister(Type messageType, IMessageHandlerFactory factory)
@@ -57,6 +56,22 @@ namespace Core.Messages.Bus
         static MessageHandlerFactoryStore()
         {
             Instance = new MessageHandlerFactoryStore();
+        }
+    }
+
+    internal class MessageHandlerFactoryUniqueComparer : IEqualityComparer<IMessageHandlerFactory>
+    {
+        public bool Equals(IMessageHandlerFactory x, IMessageHandlerFactory y)
+        {
+            if (x == null && y == null) return true;
+            if (x == null && y != null) return false;
+            if (x != null && y == null) return false;
+            return x.GetHandlerType() == y.GetHandlerType();
+        }
+
+        public int GetHashCode(IMessageHandlerFactory obj)
+        {
+            return obj?.GetHandlerType()?.GetHashCode() ?? 0;
         }
     }
 }
