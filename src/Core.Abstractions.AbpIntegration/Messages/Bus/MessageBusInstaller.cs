@@ -3,6 +3,7 @@ using Castle.MicroKernel;
 using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
+using Core.Abstractions.AbpIntegration;
 using Core.Messages.Factories;
 using System;
 
@@ -23,7 +24,7 @@ namespace Core.Messages.Bus
             container.Register(
                 Component
                 .For<IMessageBus>()
-                .ImplementedBy<MessageBus>()
+                .UsingFactoryMethod(krnl => new MessageBus(new CastleByPassServiceProvider(krnl)))
                 .LifestyleSingleton()
             );
             _messageBus = container.Resolve<IMessageBus>();
