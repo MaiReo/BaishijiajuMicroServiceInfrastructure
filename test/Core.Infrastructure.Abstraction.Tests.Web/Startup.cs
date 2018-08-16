@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Core.Infrastructure.Abstraction.Tests.Web.EFCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Core.Infrastructure_Abstraction.Tests.Web
@@ -19,8 +21,21 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
         {
             services.RegisterRequiredServices<Startup>();
 
-            var builder = services.AddAutoFacWithConvention<Startup>();
+            var databaseId = Guid.NewGuid().ToString("N");
 
+            services.AddDbContext<WebDbContext>(option=>option.UseInMemoryDatabase(databaseId));
+
+            services.AddMessageBus(o => 
+            {
+                o.HostName = "localhost";
+                o.VirtualHost = "/";
+                o.ExchangeName = "";
+                o.QueueName = "";
+                o.UserName = "guest";
+                o.Password = "guest";
+            });
+
+            var builder = services.AddAutoFacWithConvention<Startup>();
             var provider = new AutofacServiceProvider(builder.Build());
             return provider;
 
@@ -29,6 +44,7 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IApplicationLifetime applicationLifetime)
         {
+            app.UseDeveloperExceptionPage();
             app.UseMvcWithDefaultRoute();
             app.UseMessageBus();
         }

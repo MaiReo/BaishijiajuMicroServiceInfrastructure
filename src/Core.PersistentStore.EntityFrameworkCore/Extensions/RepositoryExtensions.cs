@@ -1,8 +1,6 @@
-﻿using Core.PersistentStore;
-using Core.PersistentStore.Repositories;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 
-namespace Core.TestBase
+namespace Core.PersistentStore.Repositories.Extensions
 {
     public static class RepositoryExtensions
     {

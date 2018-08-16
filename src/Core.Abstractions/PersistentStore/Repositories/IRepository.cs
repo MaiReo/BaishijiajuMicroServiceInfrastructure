@@ -5,10 +5,10 @@ using System.Text;
 
 namespace Core.PersistentStore.Repositories
 {
-    public interface IRepository<TEntity> : IRepository<TEntity, int> where TEntity : class, IEntity
+    public interface IRepository<out TEntity> : IRepository<TEntity, int> where TEntity : class, IEntity
     {
     }
-    public interface IRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
+    public interface IRepository<out TEntity, TKey> where TEntity : class, IEntity<TKey>
     {
         //TODO: Add sync methods.
 
