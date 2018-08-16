@@ -1,4 +1,4 @@
-﻿namespace Core.Abstractions.TestBase
+﻿namespace Core.TestBase
 {
     public class TestConsts
     {

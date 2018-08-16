@@ -6,7 +6,7 @@ using Core.Session;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Core.Abstractions.TestBase
+namespace Core.TestBase
 {
     public abstract class AbstractionTestBase<TStartup> : IDisposable where TStartup : class
     {
@@ -15,21 +15,16 @@ namespace Core.Abstractions.TestBase
 
         private IContainer _iocContainer;
 
-        private ILifetimeScope _lifetimeScope;
-
-        protected IComponentContext IocResolver => UseScopedResolver ? _lifetimeScope : _iocContainer;
+        protected IComponentContext IocResolver => _iocContainer;
 
         public AbstractionTestBase()
         {
             _scopeObject = new object();
             this._iocContainer = RegisterRequiredServices(new ServiceCollection()).Build();
-            this._lifetimeScope = _iocContainer.BeginLifetimeScope(_scopeObject);
             ConstructProperties();
         }
 
         public IMessageBus MessageBus { get; private set; }
-
-        protected virtual bool UseScopedResolver => true;
 
         protected internal virtual ContainerBuilder RegisterRequiredServices(IServiceCollection services)
         {
@@ -56,8 +51,9 @@ namespace Core.Abstractions.TestBase
                 containerBuilder.RegisterAssemblyByConvention(runtimeThisAssembly);
             }
             containerBuilder
-                .RegisterInstance(TestSession.Instance)
-                .As<ICoreSession>();
+                .RegisterType<UnitTestCoreSessionProvider>()
+                .AsSelf()
+                .SingleInstance();
 
             RegisterDependency(containerBuilder);
             return containerBuilder;
@@ -99,13 +95,11 @@ namespace Core.Abstractions.TestBase
                 if (disposing)
                 {
                     // TODO: 释放托管状态(托管对象)。
-                    _lifetimeScope.Dispose();
                     _iocContainer.Dispose();
                 }
 
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
                 // TODO: 将大型字段设置为 null。
-                _lifetimeScope = null;
                 _iocContainer = null;
                 disposedValue = true;
             }

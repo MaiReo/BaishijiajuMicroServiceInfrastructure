@@ -3,7 +3,6 @@ using Core.Session;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -13,21 +12,25 @@ using System.Threading.Tasks;
 namespace Core.PersistentStore
 {
     /// <summary>
-    /// 通知服务-内部通知服务
+    /// 
     /// </summary>
-    public abstract class CorePersistentStoreDbContext : DbContext
+    public abstract class CorePersistentStoreDbContext : DbContext, ICoreSessionProviderRequired
     {
-        protected virtual ICoreSession Session { get; }
+        public virtual ICoreSessionProvider SessionProvider { get; set; }
 
-        protected virtual string CurrentCityId => Session?.City?.Id;
+        protected virtual string CurrentCityId => SessionProvider?.Session?.City?.Id;
 
-        protected virtual Guid? CurrentCompanyId => Session?.Company?.Id;
+        protected virtual Guid? CurrentCompanyId => SessionProvider?.Session?.Company?.Id;
 
         private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
 
-        protected CorePersistentStoreDbContext(DbContextOptions options, ICoreSession session) : base(options)
+        public CorePersistentStoreDbContext(DbContextOptions options) : base(options)
         {
-            Session = session ?? NullCoreSession.Instance;
+        }
+
+        [Obsolete]
+        public CorePersistentStoreDbContext(DbContextOptions options, ICoreSession session) : this(options)
+        {
         }
 
         /// <summary>

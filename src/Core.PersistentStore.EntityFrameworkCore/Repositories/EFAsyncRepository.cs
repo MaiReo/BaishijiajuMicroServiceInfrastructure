@@ -9,55 +9,68 @@ using System.Threading.Tasks;
 
 namespace Core.PersistentStore.Repositories
 {
-    public abstract class EFAsyncRepository<TEntity> : EFAsyncRepository<TEntity, int>, IAsyncRepository<TEntity> where TEntity : class, IEntity
+    public abstract class EFAsyncRepository<TDbContext, TEntity> : EFAsyncRepository<TDbContext, TEntity, int>, IAsyncRepository<TEntity>
+        where TDbContext : DbContext
+        where TEntity : class, IEntity
     {
-        protected EFAsyncRepository(DbContext dbContext) : base(dbContext)
+        protected EFAsyncRepository(IDbContextResolver<TDbContext> dbContextResolver) : base(dbContextResolver)
         {
         }
     }
-    public abstract class EFAsyncRepository<TEntity, TKey> : IAsyncRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
+
+    public abstract class EFAsyncRepository<TDbContext, TEntity, TKey> : IRepositoryWithDbContext, IAsyncRepository<TEntity, TKey>
+        where TDbContext : DbContext
+        where TEntity : class, IEntity<TKey>
     {
-        protected EFAsyncRepository(DbContext dbContext)
+        private readonly IDbContextResolver<TDbContext> _dbContextResolver;
+
+        protected EFAsyncRepository(IDbContextResolver<TDbContext> dbContextResolver)
         {
-            DbContext = dbContext;
+            this._dbContextResolver = dbContextResolver;
         }
-        protected virtual DbContext DbContext { get; }
+
+        protected virtual DbContext DbContext => _dbContextResolver.GetDbContext();
 
         public virtual async Task<TEntity> DeleteAsync(TKey id, CancellationToken cancellationToken = default)
         {
-            var entity = await FirstOrDefaultAsync(id, cancellationToken);
+            var dbContext = DbContext;
+            var entity = await dbContext.FindAsync<TEntity>(new object[] { id }, cancellationToken);
             if (entity == default)
             {
                 return default;
             }
-            DbContext.Entry(entity).State = EntityState.Deleted;
-            await DbContext.SaveChangesAsync(cancellationToken);
+            dbContext.Entry(entity).State = EntityState.Deleted;
+            await dbContext.SaveChangesAsync(cancellationToken);
             return entity;
         }
 
         public virtual async Task<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            DbContext.Remove(entity);
-            await DbContext.SaveChangesAsync(cancellationToken);
+            var dbContext = DbContext;
+            dbContext.Entry(entity).State = EntityState.Deleted;
+            await dbContext.SaveChangesAsync(cancellationToken);
             return entity;
         }
 
         public virtual async Task<TEntity> FirstOrDefaultAsync(TKey id, CancellationToken cancellationToken = default)
         {
-            var entity = await DbContext.Set<TEntity>().FindAsync(new object[] { id }, cancellationToken);
+            var dbContext = DbContext;
+            var entity = await dbContext.FindAsync<TEntity>(new object[] { id }, cancellationToken);
             return entity;
         }
 
         public virtual async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            var entity = await DbContext.Set<TEntity>().FirstOrDefaultAsync(predicate, cancellationToken);
+            var dbContext = DbContext;
+            var entity = await dbContext.Set<TEntity>().FirstOrDefaultAsync(predicate, cancellationToken);
             return entity;
         }
 
         public virtual async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            var entry = await DbContext.Set<TEntity>().AddAsync(entity, cancellationToken);
-            await DbContext.SaveChangesAsync(cancellationToken);
+            var dbContext = DbContext;
+            var entry = await dbContext.AddAsync<TEntity>(entity, cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
             return entry.Entity;
         }
 
@@ -68,17 +81,19 @@ namespace Core.PersistentStore.Repositories
             {
                 return;
             }
-            var entry = DbContext.Entry(entity).Navigation(propertyName);
+            var dbContext = DbContext;
+            var entry = dbContext.Entry(entity).Navigation(propertyName);
             if (entry.IsLoaded)
             {
                 return;
             }
-            await DbContext.Entry(entity).Navigation(propertyName).LoadAsync(cancellationToken);
+            await dbContext.Entry(entity).Navigation(propertyName).LoadAsync(cancellationToken);
         }
 
         public virtual async Task EnsureCollectionLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, IEnumerable<T>>> collectionSelector, CancellationToken cancellationToken = default) where T : class
         {
-            var entry = DbContext.Entry(entity).Collection(collectionSelector);
+            var dbContext = DbContext;
+            var entry = dbContext.Entry(entity).Collection(collectionSelector);
             if (entry.IsLoaded)
             {
                 return;
@@ -97,12 +112,13 @@ namespace Core.PersistentStore.Repositories
 
         public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            var entry = DbContext.Entry(entity);
+            var dbContext = DbContext;
+            var entry = dbContext.Entry(entity);
             if (entry.State != EntityState.Modified)
             {
                 entry.State = EntityState.Modified;
             }
-            await DbContext.SaveChangesAsync(cancellationToken);
+            await dbContext.SaveChangesAsync(cancellationToken);
             return entry.Entity;
         }
 
@@ -110,5 +126,8 @@ namespace Core.PersistentStore.Repositories
         {
             return DbContext.Set<TEntity>();
         }
+
+        public DbContext GetDbContext() => DbContext;
+
     }
 }

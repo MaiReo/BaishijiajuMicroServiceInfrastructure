@@ -1,21 +1,17 @@
 ﻿using Core.PersistentStore;
 using Core.PersistentStore.Repositories;
-using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Core.Abstractions.Tests
 {
-    internal class TestRepository<TEntity> : EFAsyncRepository<TEntity> where TEntity : class, IEntity
+    internal class TestRepository<TEntity> : EFAsyncRepository<TestDbContext, TEntity> where TEntity : class, IEntity
     {
-        public TestRepository(TestDbContext dbContext) : base(dbContext)
+        public TestRepository(IDbContextResolver<TestDbContext> dbContextResolver) : base(dbContextResolver)
         {
         }
     }
-    internal class TestRepository<TEntity, TKey> : EFAsyncRepository<TEntity, TKey> where TEntity : class, IEntity<TKey>
+    internal class TestRepository<TEntity, TKey> : EFAsyncRepository<TestDbContext, TEntity, TKey> where TEntity : class, IEntity<TKey>
     {
-        public TestRepository(TestDbContext dbContext) : base(dbContext)
+        public TestRepository(IDbContextResolver<TestDbContext> dbContextResolver) : base(dbContextResolver)
         {
         }
     }
