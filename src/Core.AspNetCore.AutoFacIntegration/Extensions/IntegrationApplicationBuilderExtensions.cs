@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Extensions;
+using Core.PersistentStore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.AspNetCore.Builder

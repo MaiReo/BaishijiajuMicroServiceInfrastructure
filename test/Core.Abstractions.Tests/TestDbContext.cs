@@ -16,7 +16,7 @@ namespace Core.Abstractions.Tests
 
         public virtual DbSet<TestEntityHasCompany> TestEntityHasCompanies { get; set; }
 
-        public TestDbContext(DbContextOptions options, ICoreSession session) : base(options, session)
+        public TestDbContext(DbContextOptions options) : base(options)
         {
         }
     }

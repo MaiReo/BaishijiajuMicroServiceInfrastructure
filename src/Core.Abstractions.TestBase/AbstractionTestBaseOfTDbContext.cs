@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Core.Abstractions.TestBase
+namespace Core.TestBase
 {
     public class AbstractionTestBase<TStartup, TDbContext> : AbstractionTestBase<TStartup>
         where TStartup : class
@@ -20,9 +20,18 @@ namespace Core.Abstractions.TestBase
                 {
                     opt.UseInMemoryDatabase(databaseId);
                 },
-                contextLifetime: UseScopedResolver ? ServiceLifetime.Scoped : ServiceLifetime.Transient);
+                contextLifetime: ServiceLifetime.Transient);
             return base.RegisterRequiredServices(services);
         }
+
+        protected override void RegisterDependency(ContainerBuilder builder)
+        {
+            builder.RegisterGeneric(typeof(UnitTestDbContextResolver<>))
+                  .AsSelf()
+                  .AsImplementedInterfaces()
+                  .InstancePerDependency();
+        }
+
         protected void UsingDbContext(Action<TDbContext> action)
         {
             UsingDbContext(null, action);
@@ -34,29 +43,12 @@ namespace Core.Abstractions.TestBase
 
         protected void UsingDbContext(string cityId, Guid? companyId, Action<TDbContext> action)
         {
-            lock (TestSession.Instance)
+            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId))
+            using (var dbContext = Resolve<IDbContextResolver<TDbContext>>().GetDbContext())
             {
-                var oldCity = TestSession.Instance.City;
-                var oldCompany = TestSession.Instance.Company;
-                try
-                {
-                    TestSession.Instance.City = new City(cityId);
-                    TestSession.Instance.Company = new Company(companyId);
-                    var dbContext = Resolve<TDbContext>();
-                    action?.Invoke(dbContext);
-                    dbContext.SaveChanges();
-                    if (!UseScopedResolver)
-                    {
-                        dbContext.Dispose();
-                    }
-                }
-                finally
-                {
-                    TestSession.Instance.City = oldCity;
-                    TestSession.Instance.Company = oldCompany;
-                } 
+                action?.Invoke(dbContext);
+                dbContext.SaveChanges();
             }
-
         }
     }
 }

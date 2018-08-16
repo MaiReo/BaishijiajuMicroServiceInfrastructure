@@ -2,6 +2,7 @@
 using Autofac.Extensions.DependencyInjection;
 using Core.Abstractions;
 using Core.Messages;
+using Core.PersistentStore;
 using Core.ServiceDiscovery;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -49,6 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.RegisterModule<AbstractionModule>();
             builder.RegisterModule<RabbitMQModule>();
             builder.RegisterModule<ConsulModule>();
+            builder.RegisterModule<EntityFrameworkCoreModule>();
             builder.RegisterAssemblyByConvention(typeof(IntegrationServiceCollectionExtensions).Assembly);
             builder.RegisterAssemblyByConvention(typeof(TStartup).Assembly);
             return builder;

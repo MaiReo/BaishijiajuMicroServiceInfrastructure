@@ -30,6 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core.Abstractions.AutoFacIntegration\Core.Abstractions.AutoFacIntegration.csproj" />
     <ProjectReference Include="..\Core.Messages.RabbitMQ.AutoFacIntegration\Core.Messages.RabbitMQ.AutoFacIntegration.csproj" />
+    <ProjectReference Include="..\Core.PersistentStore.EntityFrameworkCore\Core.PersistentStore.EntityFrameworkCore.csproj" />
     <ProjectReference Include="..\Core.ServiceDiscovery.Consul.AutoFacIntegration\Core.ServiceDiscovery.Consul.AutoFacIntegration.csproj" />
   </ItemGroup>
 

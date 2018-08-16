@@ -1,9 +1,7 @@
 using Autofac;
-using Core.Abstractions.TestBase;
 using Core.PersistentStore.Repositories;
-using Core.Web.Tests;
+using Core.TestBase;
 using Shouldly;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
@@ -24,42 +22,16 @@ namespace Core.Abstractions.Tests
         protected override void RegisterDependency(ContainerBuilder builder)
         {
             builder.RegisterGeneric(typeof(TestRepository<>))
-                .AsImplementedInterfaces()
+                .As(typeof(IAsyncRepository<>))
+                .As(typeof(IRepository<>))
                 .PropertiesAutowired()
-                .InstancePerLifetimeScope();
+                .InstancePerDependency();
             builder.RegisterGeneric(typeof(TestRepository<,>))
-                .AsImplementedInterfaces()
+                .As(typeof(IAsyncRepository<,>))
+                .As(typeof(IRepository<,>))
                 .PropertiesAutowired()
-                .InstancePerLifetimeScope();
+                .InstancePerDependency();
         }
-
-        [Fact]
-        public void DbContextTest()
-        {
-            var dbContext1 = _testEntityOneRepository.GetDbContext();
-            dbContext1.ShouldBeOfType<TestDbContext>();
-            var dbContext2 = _testEntityTwoRepository.GetDbContext();
-            dbContext2.ShouldBeOfType<TestDbContext>();
-
-            object.ReferenceEquals(dbContext1, dbContext2).ShouldBeTrue();
-        }
-
-        [Fact]
-        public async Task DbContextDifferentRepositoryTest()
-        {
-            var testEntityTwo = new TestEntityTwo();
-            await _testEntityTwoRepository.InsertAsync(testEntityTwo);
-
-            var testEntityOne = new TestEntityOne { TestEntityTwoId = testEntityTwo.Id };
-            await _testEntityOneRepository.InsertAsync(testEntityOne);
-
-            var entityTwoIds = _testEntityTwoRepository.Query(q => q.Select(x => x.Id));
-            var entityOnes = _testEntityTwoRepository.Query(q => q.Where(x => entityTwoIds.Any(id => id == x.Id)));
-
-            var list = entityOnes.ToList();
-            list.ShouldNotBeEmpty();
-        }
-
 
     }
 
