@@ -38,7 +38,7 @@ namespace Core.Web.Startup
             {
                 return default;
             }
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("BrokerCompanyId", out var value))
+            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CompanyId", out var value))
             {
                 return value.ToArray()?.FirstOrDefault().AsGuidOrDefault();
             }
