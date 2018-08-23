@@ -69,7 +69,7 @@ namespace Core.PersistentStore.Repositories
         public virtual async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
-            var entry = await dbContext.AddAsync<TEntity>(entity, cancellationToken);
+            var entry = await dbContext.AddAsync(entity, cancellationToken);
             await dbContext.SaveChangesAsync(cancellationToken);
             return entry.Entity;
         }
@@ -82,23 +82,33 @@ namespace Core.PersistentStore.Repositories
                 return;
             }
             var dbContext = DbContext;
-            var entry = dbContext.Entry(entity).Navigation(propertyName);
-            if (entry.IsLoaded)
+            var entry = dbContext.Entry(entity);
+            if (entry.State == EntityState.Detached)
+            {
+                dbContext.Attach(entity);
+            }
+            var nav = entry.Navigation(propertyName);
+            if (nav.IsLoaded)
             {
                 return;
             }
-            await dbContext.Entry(entity).Navigation(propertyName).LoadAsync(cancellationToken);
+            await nav.LoadAsync(cancellationToken);
         }
 
         public virtual async Task EnsureCollectionLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, IEnumerable<T>>> collectionSelector, CancellationToken cancellationToken = default) where T : class
         {
             var dbContext = DbContext;
-            var entry = dbContext.Entry(entity).Collection(collectionSelector);
-            if (entry.IsLoaded)
+            var entry = dbContext.Entry(entity);
+            if (entry.State == EntityState.Detached)
+            {
+                dbContext.Attach(entity);
+            }
+            var collection = entry.Collection(collectionSelector); 
+            if (collection.IsLoaded)
             {
                 return;
             }
-            await entry.LoadAsync(cancellationToken);
+            await collection.LoadAsync(cancellationToken);
         }
 
         public virtual T Query<T>(Func<IQueryable<TEntity>, T> predicate)
