@@ -6,7 +6,7 @@ using Xunit;
 
 namespace Core.Abstractions.Tests
 {
-    public class FilterTests : AbstractionTestBase<RepositoryTests, TestDbContext>
+    public class FilterTests : AbstractionTestBase<FilterTests, TestDbContext>
     {
 
         #region 城市过滤器
