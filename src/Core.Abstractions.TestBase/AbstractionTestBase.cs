@@ -11,17 +11,30 @@ namespace Core.TestBase
     public abstract class AbstractionTestBase<TStartup> : IDisposable where TStartup : class
     {
 
-        private readonly object _scopeObject;
-
         private IContainer _iocContainer;
+        private readonly ICoreSessionProvider _coreSessionProvider;
 
         protected IComponentContext IocResolver => _iocContainer;
 
+        protected ICoreSession Session => _coreSessionProvider.Session;
+
         public AbstractionTestBase()
         {
-            _scopeObject = new object();
-            this._iocContainer = RegisterRequiredServices(new ServiceCollection()).Build();
+
+            _iocContainer = RegisterRequiredServices(new ServiceCollection()).Build();
+            _coreSessionProvider = Resolve<ICoreSessionProvider>();
             ConstructProperties();
+            LoginAsDefaultUser();
+        }
+
+        private void LoginAsDefaultUser()
+        {
+            LoginAs(TestConsts.CURRENT_USER_ID, TestConsts.CURRENT_USER_NAME);
+        }
+
+        protected void LoginAs(string userId, string userName)
+        {
+            Resolve<UnitTestCurrentUser>().Set(userId, userName);
         }
 
         public IMessageBus MessageBus { get; private set; }
@@ -44,7 +57,7 @@ namespace Core.TestBase
             var containerBuilder = services.AddAutoFacWithConvention<TStartup>();
             var startupAssembly = typeof(TStartup).Assembly;
             var thisAssembly = typeof(AbstractionTestBase<>).Assembly;
-            var runtimeThisAssembly = this.GetType().Assembly;
+            var runtimeThisAssembly = GetType().Assembly;
             containerBuilder.RegisterAssemblyByConvention(thisAssembly);
             if (runtimeThisAssembly != startupAssembly)
             {
@@ -53,9 +66,20 @@ namespace Core.TestBase
             containerBuilder
                 .RegisterType<UnitTestCoreSessionProvider>()
                 .AsSelf()
+                .As<ICoreSessionProvider>()
+                .SingleInstance();
+
+            containerBuilder.RegisterType<UnitTestCurrentUser>()
+                .AsSelf()
                 .SingleInstance();
 
             RegisterDependency(containerBuilder);
+
+            //containerBuilder.Register(c => c.Resolve<IComponentContext>().Resolve<UnitTestCoreSessionProvider>().Session)
+            //    .As<ICoreSession>()
+            //    .OnlyIf(c => c.IsRegistered(new TypedService(typeof(UnitTestCoreSessionProvider))))
+            //    .IfNotRegistered(typeof(ICoreSession));
+
             return containerBuilder;
         }
 
@@ -82,7 +106,10 @@ namespace Core.TestBase
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        protected T Resolve<T>() => IocResolver.Resolve<T>();
+        protected T Resolve<T>()
+        {
+            return IocResolver.Resolve<T>();
+        }
 
 
         #region IDisposable Support

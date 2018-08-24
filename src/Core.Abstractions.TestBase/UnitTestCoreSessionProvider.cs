@@ -1,23 +1,29 @@
 ﻿using Core.Session;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Core.TestBase
 {
 
     public class UnitTestCoreSessionProvider : ICoreSessionProvider
     {
+        private readonly UnitTestCurrentUser _currentUser;
+
         public ICoreSession Session { get; private set; }
+
+        public UnitTestCoreSessionProvider(UnitTestCurrentUser currentUser)
+        {
+            _currentUser = currentUser;
+            Session = new UnitTestCoreSession(null, null, _currentUser);
+        }
 
         public IDisposable Use(string cityId, Guid? brokerCompanyId)
         {
             lock (this)
             {
                 var currentSession = Session;
-                var newSession = new UnitTestCoreSession(cityId, brokerCompanyId);
+                var newSession = new UnitTestCoreSession(cityId, brokerCompanyId, _currentUser);
                 var disposable = new SessionRestore(() => Session = currentSession);
-                this.Session = newSession;
+                Session = newSession;
                 return disposable;
             }
         }
@@ -26,7 +32,7 @@ namespace Core.TestBase
         {
             lock (this)
             {
-                this.Session = session;
+                Session = session;
             }
         }
 
@@ -39,7 +45,7 @@ namespace Core.TestBase
 
             public SessionRestore(Action onDisposing)
             {
-                this._onDisposing = onDisposing;
+                _onDisposing = onDisposing;
             }
 
             protected virtual void Dispose(bool disposing)

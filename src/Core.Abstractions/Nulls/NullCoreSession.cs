@@ -6,11 +6,14 @@
         {
             City = new City(null);
             Company = new Company(null);
+            User = new User(null, null);
         }
         public City City { get; }
 
         public static NullCoreSession Instance => new NullCoreSession();
 
         public Company Company { get; }
+
+        public User User { get; }
     }
 }

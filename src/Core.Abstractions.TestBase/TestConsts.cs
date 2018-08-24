@@ -11,5 +11,7 @@
         public const string MESSAGE_BUS_QUEUE = "test_q";
         public const string MESSAGE_BUS_USER = "test_user";
         public const string MESSAGE_BUS_PWD = "test_pwd";
+        public const string CURRENT_USER_ID = "hrb_2";
+        public const string CURRENT_USER_NAME = "admin";
     }
 }

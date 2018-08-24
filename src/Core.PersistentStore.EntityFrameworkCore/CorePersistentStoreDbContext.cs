@@ -1,6 +1,9 @@
 ﻿using Core.Extensions;
+using Core.PersistentStore.Auditing.Extensions;
 using Core.Session;
+using Core.Session.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System;
 using System.Linq;
@@ -28,11 +31,6 @@ namespace Core.PersistentStore
         {
         }
 
-        [Obsolete]
-        public CorePersistentStoreDbContext(DbContextOptions options, ICoreSession session) : this(options)
-        {
-        }
-
         /// <summary>
         /// See <see cref="DbContext.SaveChanges(bool)"/>
         /// </summary>
@@ -55,50 +53,44 @@ namespace Core.PersistentStore
 
         private void OnSavingChanges()
         {
-            /*
-             * 使用IEntity, IHasCreationTime, IHasModificationTime手动实现自动更新时间
-             * TODO: 使用OnModelCreating使用FluentAPI在设计时添加数据库级别赋值提升效率
-             */
-            if (this.ChangeTracker.HasChanges())
+            if (ChangeTracker.HasChanges())
             {
-                var entries = this.ChangeTracker.Entries().ToList();
+                var entries = ChangeTracker.Entries().ToList();
                 foreach (var entry in entries)
                 {
-                    if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IHasCreationTime hasCreationTimeEntity)
-                    {
-                        hasCreationTimeEntity.CreationTime = Clock.Now;
-                    }
-                    if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IHasCity hasCityEntity)
-                    {
-                        if (string.IsNullOrWhiteSpace(hasCityEntity.CityId))
-                        {
-                            hasCityEntity.CityId = CurrentCityId;
-                        }
-                    }
-                    if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany mayHaveCompanyEntity)
-                    {
-                        if (!mayHaveCompanyEntity.BrokerCompanyId.HasValue)
-                        {
-                            mayHaveCompanyEntity.BrokerCompanyId = CurrentCompanyId;
-                        }
-                    }
-                    if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IHasModificationTime hasModificationTimeEntityOnAdd)
-                    {
-                        hasModificationTimeEntityOnAdd.LastModificationTime = null;
-                    }
-                    if (entry.State == EntityState.Modified && entry.Entity is IEntityBase && entry.Entity is IHasModificationTime hasModificationTimeEntityOnModifing)
-                    {
-                        hasModificationTimeEntityOnModifing.LastModificationTime = Clock.Now;
-                    }
-                    if (entry.State == EntityState.Deleted && entry.Entity is IEntityBase && entry.Entity is ISoftDelete)
-                    {
-                        entry.Reload();
-                        if (entry.State == EntityState.Unchanged)
-                        {
-                            entry.State = EntityState.Modified;
-                            (entry.Entity as ISoftDelete).IsDeleted = true;
-                        }
-                    }
+                    PerformCity(entry);
+                    PerformCompany(entry);
+                    PerformAuditing(entry);
+                }
+            }
+        }
+
+
+        private void PerformAuditing(EntityEntry entry)
+        {
+            var currentUserId = SessionProvider?.Session?.GetCurrentUserId();
+            var currentUserName = SessionProvider?.Session?.GetCurrentUserName();
+            entry.PerformAuditing(currentUserId, currentUserName);
+        }
+
+        private void PerformCity(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IHasCity hasCityEntity)
+            {
+                if (string.IsNullOrWhiteSpace(hasCityEntity.CityId))
+                {
+                    hasCityEntity.CityId = CurrentCityId;
+                }
+            }
+        }
+
+        private void PerformCompany(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany mayHaveCompanyEntity)
+            {
+                if (!mayHaveCompanyEntity.BrokerCompanyId.HasValue)
+                {
+                    mayHaveCompanyEntity.BrokerCompanyId = CurrentCompanyId;
                 }
             }
         }

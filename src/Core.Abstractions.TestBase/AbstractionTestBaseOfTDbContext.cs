@@ -21,21 +21,21 @@ namespace Core.TestBase
                     opt.UseInMemoryDatabase(databaseId);
                 },
                 contextLifetime: ServiceLifetime.Transient);
-            return base.RegisterRequiredServices(services);
-        }
 
-        protected override void RegisterDependency(ContainerBuilder builder)
-        {
+            var builder =  base.RegisterRequiredServices(services);
+
             builder.RegisterGeneric(typeof(UnitTestDbContextResolver<>))
                   .AsSelf()
                   .AsImplementedInterfaces()
                   .InstancePerDependency();
+            return builder;
         }
 
         protected void UsingDbContext(Action<TDbContext> action)
         {
             UsingDbContext(null, action);
         }
+
         protected void UsingDbContext(string cityId, Action<TDbContext> action)
         {
             UsingDbContext(cityId, default, action);
