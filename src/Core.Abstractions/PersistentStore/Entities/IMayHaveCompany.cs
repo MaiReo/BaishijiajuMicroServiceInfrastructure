@@ -6,6 +6,8 @@ namespace Core.PersistentStore
 {
     public interface IMayHaveCompany
     {
-        Guid? BrokerCompanyId { get; set; }
+        Guid? CompanyId { get; set; }
+
+        string CompanyName { get; set; }
     }
 }

@@ -25,6 +25,12 @@ namespace Core.PersistentStore
 
         protected virtual Guid? CurrentCompanyId => SessionProvider?.Session?.Company?.Id;
 
+        protected virtual string CurrentCompanyName => SessionProvider?.Session?.Company?.Name;
+
+        protected virtual Guid? CurrentStoreId => SessionProvider?.Session?.Store?.Id;
+
+        protected virtual string CurrentStoreName => SessionProvider?.Session?.Store?.Name;
+
         private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
 
         public CorePersistentStoreDbContext(DbContextOptions options) : base(options)
@@ -60,6 +66,7 @@ namespace Core.PersistentStore
                 {
                     PerformCity(entry);
                     PerformCompany(entry);
+                    PerformStore(entry);
                     PerformAuditing(entry);
                 }
             }
@@ -75,22 +82,41 @@ namespace Core.PersistentStore
 
         private void PerformCity(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IHasCity hasCityEntity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCity entity)
             {
-                if (string.IsNullOrWhiteSpace(hasCityEntity.CityId))
+                if (string.IsNullOrWhiteSpace(entity.CityId))
                 {
-                    hasCityEntity.CityId = CurrentCityId;
+                    entity.CityId = CurrentCityId;
                 }
             }
         }
 
         private void PerformCompany(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany mayHaveCompanyEntity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany entity)
             {
-                if (!mayHaveCompanyEntity.BrokerCompanyId.HasValue)
+                if (!entity.CompanyId.HasValue)
                 {
-                    mayHaveCompanyEntity.BrokerCompanyId = CurrentCompanyId;
+                    entity.CompanyId = CurrentCompanyId;
+                }
+                if (!string.IsNullOrWhiteSpace(entity.CompanyName))
+                {
+                    entity.CompanyName = CurrentCompanyName;
+                }
+            }
+        }
+
+        private void PerformStore(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveStore entity)
+            {
+                if (!entity.StoreId.HasValue)
+                {
+                    entity.StoreId = CurrentStoreId;
+                }
+                if (!string.IsNullOrWhiteSpace(entity.StoreName))
+                {
+                    entity.StoreName = CurrentStoreName;
                 }
             }
         }
@@ -131,11 +157,15 @@ namespace Core.PersistentStore
                 return true;
             }
 
-            if (typeof(IHasCity).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMayHaveCity).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
             if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+            if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
@@ -153,21 +183,27 @@ namespace Core.PersistentStore
                 expression = expression.AndAlsoOrDefault(softDeleteFilter);
             }
 
-            if (typeof(IHasCity).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMayHaveCity).IsAssignableFrom(typeof(TEntity)))
             {
                 /* This condition should normally be defined as below:
                  * CurrentCityId == null || ((IHasCity)e).CityId == CurrentCityId
                  * But this causes a problem with EF Core (see https://github.com/aspnet/EntityFrameworkCore/issues/9502)
                  * So, we made a workaround to make it working. It works same as above.
                  */
-                Expression<Func<TEntity, bool>> hasCityFilter = e => ((IHasCity)e).CityId == CurrentCityId || (((IHasCity)e).CityId != CurrentCityId && CurrentCityId == null);
-                expression = expression.AndAlsoOrDefault(hasCityFilter);
+                Expression<Func<TEntity, bool>> mayHaveCityFilter = e => ((IMayHaveCity)e).CityId == CurrentCityId || (((IMayHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
+                expression = expression.AndAlsoOrDefault(mayHaveCityFilter);
             }
 
             if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> mayHaveCompanyFilter = e => ((IMayHaveCompany)e).BrokerCompanyId == CurrentCompanyId;
+                Expression<Func<TEntity, bool>> mayHaveCompanyFilter = e => ((IMayHaveCompany)e).CompanyId == CurrentCompanyId || (((IMayHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null);
                 expression = expression.AndAlsoOrDefault(mayHaveCompanyFilter);
+            }
+
+            if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> mayHaveStoreFilter = e => ((IMayHaveStore)e).StoreId == CurrentStoreId || (((IMayHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null);
+                expression = expression.AndAlsoOrDefault(mayHaveStoreFilter);
             }
 
             return expression;

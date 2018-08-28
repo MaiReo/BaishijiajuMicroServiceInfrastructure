@@ -26,7 +26,7 @@ namespace Core.Abstractions.Tests
 
     
 
-    public class TestEntityHasCity : Entity, IHasCity
+    public class TestEntityHasCity : Entity, IMayHaveCity
     {
         public string CityId { get; set; }
 
@@ -43,20 +43,27 @@ namespace Core.Abstractions.Tests
 
     }
 
-    public class TestEntityHasCompany : Entity, IMayHaveCompany, IHasCity
+    public class TestEntityHasCompany : Entity, IMayHaveCompany, IMayHaveCity
     {
         public string Name { get; set; }
-        public Guid? BrokerCompanyId { get; set; }
+
         public string CityId { get; set; }
+        
+        public Guid? CompanyId { get; set; }
+
+        public string CompanyName { get; set; }
     }
 
-    public class TestEntityFullAudited : FullAuditedEntity, IMayHaveCompany, IHasCity
+    public class TestEntityFullAudited : FullAuditedEntity, IMayHaveCompany, IMayHaveCity
     {
         public string Name { get; set; }
 
         public int Age { get; set; }
 
-        public Guid? BrokerCompanyId { get; set; }
+        public Guid? CompanyId { get; set; }
+
+        public string CompanyName { get; set; }
+
         public string CityId { get; set; }
     }
 }

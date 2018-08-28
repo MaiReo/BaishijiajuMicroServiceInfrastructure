@@ -2,10 +2,16 @@
 {
     public interface ICoreSession
     {
-        City City { get; }
+        SessionCity City { get; }
 
-        Company Company { get; }
+        SessionCompany Company { get; }
 
-        User User { get; }
+        SessionOrganization Organization { get; }
+
+        SessionUser User { get; }
+
+        SessionStore Store { get; }
+
+        SessionBroker Broker { get; }
     }
 }

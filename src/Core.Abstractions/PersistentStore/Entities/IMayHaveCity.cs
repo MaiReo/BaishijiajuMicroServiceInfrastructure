@@ -1,6 +1,6 @@
 ﻿namespace Core.PersistentStore
 {
-    public interface IHasCity
+    public interface IMayHaveCity
     {
         string CityId { get; set; }
     }

@@ -45,7 +45,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var builder = new ContainerBuilder();
             if (services != null)
             {
-                builder.Populate(services);
+                builder.Populate (services);
             }
             builder.RegisterModule<AbstractionModule>();
             builder.RegisterModule<RabbitMQModule>();
