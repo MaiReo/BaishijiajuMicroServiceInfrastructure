@@ -2,7 +2,7 @@
 
 namespace Core.TestBase
 {
-    public class UnitTestCurrentUser : User
+    public class UnitTestCurrentUser : SessionUser
     {
         public UnitTestCurrentUser() : base(null, null)
         {

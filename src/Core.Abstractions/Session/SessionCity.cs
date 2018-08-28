@@ -4,17 +4,16 @@ using System.Text;
 
 namespace Core.Session
 {
-    public class Company
+    public class SessionCity
     {
-        public Company()
+        public SessionCity()
         {
         }
 
-        public Company(Guid? id) : this()
+        public SessionCity(string id) : this()
         {
             this.Id = id;
         }
-
-        public Guid? Id { get; }
+        public string Id { get; protected set; }
     }
 }

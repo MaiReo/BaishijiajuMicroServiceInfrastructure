@@ -1,8 +1,12 @@
 ﻿namespace Core.Session
 {
-    public class User
+    public class SessionUser
     {
-        public User(string id, string name)
+        public SessionUser()
+        {
+        }
+
+        public SessionUser(string id, string name = default) : this()
         {
             Id = id;
             Name = name;

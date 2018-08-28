@@ -1,4 +1,5 @@
 ﻿using Core.TestBase;
+using Microsoft.EntityFrameworkCore;
 using Shouldly;
 using System;
 using System.Linq;
@@ -91,7 +92,7 @@ namespace Core.Abstractions.Tests
             //Assert
             UsingDbContext(TestConsts.CITY_ID, context => 
             {
-                context.TestEntityHasCompanies.Single().Name.ShouldBe("Host");
+                context.TestEntityHasCompanies.Count().ShouldBe(2);
             });
             UsingDbContext(TestConsts.CITY_ID, companyId, context =>
             {
