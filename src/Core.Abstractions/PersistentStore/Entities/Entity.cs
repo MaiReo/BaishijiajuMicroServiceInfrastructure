@@ -27,36 +27,11 @@ namespace Core.PersistentStore
         public virtual T Id { get; set; }
     }
 
-    public abstract class EntityNoKey : EntityNoKey<Guid>, IEntityBase
+    [Obsolete("Use type named 'Entity' and overrides property named 'id' instead", true)]
+    public abstract class EntityNoKey { }
+
+    [Obsolete("Use type named 'Entity' and overrides property named 'id' instead", true)]
+    public abstract class EntityNoKey<T>
     {
-        protected EntityNoKey()
-        {
-        }
-
-        protected EntityNoKey(Guid id) : base(id)
-        {
-        }
-    }
-    /// <summary>
-    /// 不自动生成主键的实体
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public abstract class EntityNoKey<T> : IEntity<T>, IEntityBase
-    {
-        protected EntityNoKey()
-        {
-        }
-
-        protected EntityNoKey(T id)
-        {
-            this.Id = id;
-        }
-
-        /// <summary>
-        /// 主键
-        /// </summary>
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public virtual T Id { get; set; }
     }
 }
