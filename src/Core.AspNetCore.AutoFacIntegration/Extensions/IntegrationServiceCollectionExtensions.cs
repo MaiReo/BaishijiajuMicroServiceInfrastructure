@@ -13,14 +13,13 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class IntegrationServiceCollectionExtensions
     {
-        public static void RegisterRequiredServices<TStartup>(this IServiceCollection services) where TStartup : class
+        public static IMvcCoreBuilder RegisterRequiredServices(this IServiceCollection services)
         {
             services.AddOptions();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddHttpContextAccessor();
             var mvcCoreBuilder = services.AddMvcCore();
             mvcCoreBuilder.AddApiExplorer();
-            mvcCoreBuilder.AddApplicationPart(typeof(TStartup).Assembly);
             mvcCoreBuilder.AddFormatterMappings();
             mvcCoreBuilder.AddDataAnnotations();
             mvcCoreBuilder.SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -36,24 +35,9 @@ namespace Microsoft.Extensions.DependencyInjection
             //TODO: 需要统一格式化时间字符串看情况再作处理
             mvcCoreBuilder.AddJsonFormatters(/*o => o.DateFormatString = "o"*/);
             mvcCoreBuilder.AddControllersAsServices();
+            return mvcCoreBuilder;
         }
-        /// <summary>
-        /// Register dependencies to container.
-        /// </summary>
-        public static ContainerBuilder AddAutoFacWithConvention<TStartup>(this IServiceCollection services) where TStartup : class
-        {
-            var builder = new ContainerBuilder();
-            if (services != null)
-            {
-                builder.Populate (services);
-            }
-            builder.RegisterModule<AbstractionModule>();
-            builder.RegisterModule<RabbitMQModule>();
-            builder.RegisterModule<ConsulModule>();
-            builder.RegisterModule<EntityFrameworkCoreModule>();
-            builder.RegisterAssemblyByConvention(typeof(IntegrationServiceCollectionExtensions).Assembly);
-            builder.RegisterAssemblyByConvention(typeof(TStartup).Assembly);
-            return builder;
-        }
+
+        
     }
 }

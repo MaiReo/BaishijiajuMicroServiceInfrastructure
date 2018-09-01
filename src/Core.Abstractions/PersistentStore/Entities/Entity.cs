@@ -26,12 +26,4 @@ namespace Core.PersistentStore
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public virtual T Id { get; set; }
     }
-
-    [Obsolete("Use type named 'Entity' and overrides property named 'id' instead", true)]
-    public abstract class EntityNoKey { }
-
-    [Obsolete("Use type named 'Entity' and overrides property named 'id' instead", true)]
-    public abstract class EntityNoKey<T>
-    {
-    }
 }
