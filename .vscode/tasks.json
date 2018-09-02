@@ -1,0 +1,15 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/test/Core.Infrastructure.Abstraction.Tests.Web/Core.Infrastructure.Abstraction.Tests.Web.csproj"
+            ],
+            "problemMatcher": "$msCompile"
+        }
+    ]
+}

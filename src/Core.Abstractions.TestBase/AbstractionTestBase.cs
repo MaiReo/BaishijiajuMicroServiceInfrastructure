@@ -1,4 +1,5 @@
 ﻿using Autofac;
+using Autofac.Extensions.DependencyInjection;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Extensions;
 using Core.ServiceDiscovery;
@@ -42,7 +43,7 @@ namespace Core.TestBase
         protected internal virtual ContainerBuilder RegisterRequiredServices(IServiceCollection services)
         {
             services.AddDistributedMemoryCache();
-            services.RegisterRequiredServices<TStartup>();
+            services.RegisterRequiredServices().AddApplicationPart(typeof(TStartup).Assembly);
             services.AddMessageBus(o =>
             {
                 o.ExchangeName = TestConsts.MESSAGE_BUS_EXCHANGE;
@@ -54,7 +55,9 @@ namespace Core.TestBase
             });
             services.AddServiceDiscovery(o => o.Address = ServiceDiscoveryConfiguration.DEFAULT_ADDRESS);
 
-            var containerBuilder = services.AddAutoFacWithConvention<TStartup>();
+            var containerBuilder = new ContainerBuilder();
+            containerBuilder.Populate(services);
+            containerBuilder.AddCoreModules();
             var startupAssembly = typeof(TStartup).Assembly;
             var thisAssembly = typeof(AbstractionTestBase<>).Assembly;
             var runtimeThisAssembly = GetType().Assembly;
