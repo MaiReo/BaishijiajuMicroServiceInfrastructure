@@ -29,9 +29,9 @@ namespace Core.ServiceDiscovery
             return newName;
         }
 
-        string IServiceHelper.GetRunningServiceId() => Configuration.ServiceId ?? Normalize(ServiceId);
+        string IServiceHelper.GetRunningServiceId() => string.IsNullOrWhiteSpace(Configuration.ServiceId) ? Normalize(ServiceId) : Configuration.ServiceId;
 
-        string IServiceHelper.GetRunningServiceName() => Configuration.ServiceName ?? Normalize(ServiceName);
+        string IServiceHelper.GetRunningServiceName() => string.IsNullOrWhiteSpace(Configuration.ServiceName) ? Normalize(ServiceName) : Configuration.ServiceName;
 
         IEnumerable<string> IServiceHelper.GetRunningServiceTags() => Configuration.ServiceTags ?? ServiceTags;
     }
