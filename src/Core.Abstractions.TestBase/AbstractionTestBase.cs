@@ -61,6 +61,7 @@ namespace Core.TestBase
             var startupAssembly = typeof(TStartup).Assembly;
             var thisAssembly = typeof(AbstractionTestBase<>).Assembly;
             var runtimeThisAssembly = GetType().Assembly;
+            containerBuilder.RegisterAssemblyByConvention(startupAssembly);
             containerBuilder.RegisterAssemblyByConvention(thisAssembly);
             if (runtimeThisAssembly != startupAssembly)
             {
