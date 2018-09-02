@@ -42,8 +42,9 @@ namespace Core.TestBase
 
         protected internal virtual ContainerBuilder RegisterRequiredServices(IServiceCollection services)
         {
+            var startupAssembly = typeof(TStartup).Assembly;
             services.AddDistributedMemoryCache();
-            services.RegisterRequiredServices().AddApplicationPart(typeof(TStartup).Assembly);
+            services.RegisterRequiredServices(startupAssembly);
             services.AddMessageBus(o =>
             {
                 o.ExchangeName = TestConsts.MESSAGE_BUS_EXCHANGE;
@@ -58,7 +59,6 @@ namespace Core.TestBase
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);
             containerBuilder.AddCoreModules();
-            var startupAssembly = typeof(TStartup).Assembly;
             var thisAssembly = typeof(AbstractionTestBase<>).Assembly;
             var runtimeThisAssembly = GetType().Assembly;
             containerBuilder.RegisterAssemblyByConvention(startupAssembly);
