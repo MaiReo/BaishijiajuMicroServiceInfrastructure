@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 
 namespace Core.ServiceDiscovery
 {
     public class DefaultServiceHelper : IServiceHelper
     {
-        public static DefaultServiceHelper Instance => new DefaultServiceHelper();
+        public DefaultServiceHelper(ServiceDiscoveryConfiguration configuration)
+        {
+            Configuration = configuration;
+        }
+
+        public ServiceDiscoveryConfiguration Configuration { get; }
 
         protected virtual string ServiceId => Assembly.GetEntryAssembly().GetName().Name;
 
@@ -21,20 +25,14 @@ namespace Core.ServiceDiscovery
             {
                 return Guid.NewGuid().ToString("N");
             }
-            var newName = name.ToLowerInvariant().Replace('.', '-'); 
+            var newName = name.ToLowerInvariant().Replace('.', '-');
             return newName;
         }
 
-        string IServiceHelper.GetRunningServiceId() => Normalize(ServiceId);
+        string IServiceHelper.GetRunningServiceId() => Configuration.ServiceId ?? Normalize(ServiceId);
 
-        string IServiceHelper.GetRunningServiceName() => Normalize(ServiceName);
+        string IServiceHelper.GetRunningServiceName() => Configuration.ServiceName ?? Normalize(ServiceName);
 
-        IEnumerable<string> IServiceHelper.GetRunningServiceTags()
-        {
-            foreach (var tag in ServiceTags)
-            {
-                yield return Normalize(tag);
-            }
-        }
+        IEnumerable<string> IServiceHelper.GetRunningServiceTags() => Configuration.ServiceTags ?? ServiceTags;
     }
 }

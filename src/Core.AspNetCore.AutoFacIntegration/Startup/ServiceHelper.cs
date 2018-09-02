@@ -1,6 +1,7 @@
 ﻿using Core.Abstractions.Dependency;
 using Core.ServiceDiscovery;
 using Microsoft.AspNetCore.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -17,7 +18,7 @@ namespace Core.Web.Startup
         /// 
         /// </summary>
         /// <param name="hostingEnvironment"></param>
-        public ServiceHelper(IHostingEnvironment hostingEnvironment)
+        public ServiceHelper(IHostingEnvironment hostingEnvironment, ServiceDiscoveryConfiguration configuration) : base(configuration)
         {
             this.hostingEnvironment = hostingEnvironment;
         }
@@ -25,7 +26,10 @@ namespace Core.Web.Startup
         /// 
         /// </summary>
         /// <returns></returns>
-        protected override string ServiceId => hostingEnvironment.ApplicationName;
+        protected override string ServiceId => Guid.NewGuid().ToString("N");
+
+
+        protected override string ServiceName => hostingEnvironment.ApplicationName;
 
         /// <summary>
         /// 
