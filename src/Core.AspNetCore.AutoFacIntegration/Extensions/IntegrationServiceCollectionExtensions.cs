@@ -7,18 +7,26 @@ using Core.ServiceDiscovery;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class IntegrationServiceCollectionExtensions
     {
-        public static IMvcCoreBuilder RegisterRequiredServices(this IServiceCollection services)
+        public static IMvcCoreBuilder RegisterRequiredServices(this IServiceCollection services, params Assembly[] applicationParts)
         {
             services.AddOptions();
             services.AddRouting(options => options.LowercaseUrls = true);
             services.AddHttpContextAccessor();
             var mvcCoreBuilder = services.AddMvcCore();
+            if(applicationParts != null)
+            {
+                foreach(var assembly in applicationParts)
+                {
+                    mvcCoreBuilder.AddApplicationPart(assembly);
+                }
+            }
             mvcCoreBuilder.AddApiExplorer();
             mvcCoreBuilder.AddFormatterMappings();
             mvcCoreBuilder.AddDataAnnotations();
