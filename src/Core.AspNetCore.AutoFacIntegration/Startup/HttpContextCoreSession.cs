@@ -35,7 +35,7 @@ namespace Core.Web.Startup
             {
                 return default;
             }
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CityId", out var value))
+            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CityID", out var value))
             {
                 return value;
             }
@@ -48,7 +48,7 @@ namespace Core.Web.Startup
             {
                 return default;
             }
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CompanyId", out var value))
+            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CompanyID", out var value))
             {
                 return value.ToArray()?.FirstOrDefault().AsGuidOrDefault();
             }
@@ -129,7 +129,7 @@ namespace Core.Web.Startup
             {
                 return default;
             }
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("StoreId", out var value))
+            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("StoreID", out var value))
             {
                 return value.ToArray()?.FirstOrDefault().AsGuidOrDefault();
             }
@@ -155,7 +155,7 @@ namespace Core.Web.Startup
             {
                 return default;
             }
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CurrentBrokerId", out var value))
+            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("BrokerID", out var value))
             {
                 return value;
             }
@@ -168,7 +168,7 @@ namespace Core.Web.Startup
             {
                 return default;
             }
-            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("CurrentBrokerName", out var value))
+            if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue("BrokerName", out var value))
             {
                 return TryUrlDecode(value);
             }
