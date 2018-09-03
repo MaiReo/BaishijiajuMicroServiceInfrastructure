@@ -31,6 +31,10 @@ namespace Core.PersistentStore
 
         protected virtual string CurrentStoreName => SessionProvider?.Session?.Store?.Name;
 
+        protected virtual string CurrentBrokerId => SessionProvider?.Session?.Broker?.Id;
+
+        protected virtual string CurrentBrokerName => SessionProvider?.Session?.Broker?.Name;
+
         private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
 
         public CorePersistentStoreDbContext(DbContextOptions options) : base(options)
@@ -67,6 +71,7 @@ namespace Core.PersistentStore
                     PerformCity(entry);
                     PerformCompany(entry);
                     PerformStore(entry);
+                    PerformBroker(entry);
                     PerformAuditing(entry);
                 }
             }
@@ -82,6 +87,12 @@ namespace Core.PersistentStore
 
         private void PerformCity(EntityEntry entry)
         {
+            PerformMayHaveCity(entry);
+            PerformMustHaveCity(entry);
+        }
+
+        private void PerformMayHaveCity(EntityEntry entry)
+        {
             if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCity entity)
             {
                 if (string.IsNullOrWhiteSpace(entity.CityId))
@@ -91,7 +102,29 @@ namespace Core.PersistentStore
             }
         }
 
+        private void PerformMustHaveCity(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMustHaveCity entity)
+            {
+                if (string.IsNullOrWhiteSpace(entity.CityId))
+                {
+                    entity.CityId = CurrentCityId;
+                }
+                if (string.IsNullOrWhiteSpace(entity.CityId))
+                {
+                    throw new CityRequiredException(entry.Entity.GetType());
+                }
+            }
+
+        }
+
         private void PerformCompany(EntityEntry entry)
+        {
+            PerformMayHaveCompany(entry);
+            PerformMustHaveCompany(entry);
+        }
+
+        private void PerformMayHaveCompany(EntityEntry entry)
         {
             if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany entity)
             {
@@ -99,14 +132,42 @@ namespace Core.PersistentStore
                 {
                     entity.CompanyId = CurrentCompanyId;
                 }
-                if (!string.IsNullOrWhiteSpace(entity.CompanyName))
+                if (string.IsNullOrWhiteSpace(entity.CompanyName))
                 {
                     entity.CompanyName = CurrentCompanyName;
                 }
             }
         }
 
+        private void PerformMustHaveCompany(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMustHaveCompany entity)
+            {
+                if (entity.CompanyId == default)
+                {
+                    entity.CompanyId = CurrentCompanyId.GetValueOrDefault();
+                }
+                if (string.IsNullOrWhiteSpace(entity.CompanyName))
+                {
+                    entity.CompanyName = CurrentCompanyName;
+                }
+                if (entity.CompanyId == default)
+                {
+                    throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyId Required but not provided.");
+                }
+                if (string.IsNullOrWhiteSpace(entity.CompanyName))
+                {
+                     throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyName Required but not provided.");
+                }
+            }
+        }
+
         private void PerformStore(EntityEntry entry)
+        {
+            PerformMayHaveStore(entry);
+            PerformMustHaveStore(entry);
+        }
+        private void PerformMayHaveStore(EntityEntry entry)
         {
             if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveStore entity)
             {
@@ -114,9 +175,54 @@ namespace Core.PersistentStore
                 {
                     entity.StoreId = CurrentStoreId;
                 }
+                if (string.IsNullOrWhiteSpace(entity.StoreName))
+                {
+                    entity.StoreName = CurrentStoreName;
+                }
+            }
+        }
+        private void PerformMustHaveStore(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMustHaveStore entity)
+            {
+                if (entity.StoreId == default)
+                {
+                    entity.StoreId = CurrentStoreId.GetValueOrDefault();
+                }
                 if (!string.IsNullOrWhiteSpace(entity.StoreName))
                 {
                     entity.StoreName = CurrentStoreName;
+                }
+                if (entity.StoreId == default)
+                {
+                    throw new StoreRequiredException(entry.Entity.GetType(), "StoreId Required but not provided.");
+                }
+                if (string.IsNullOrWhiteSpace(entity.StoreName))
+                {
+                    throw new StoreRequiredException(entry.Entity.GetType(), "StoreName Required but not provided.");
+                }
+            }
+        }
+
+        private void PerformBroker(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMustHaveBroker entity)
+            {
+                if (string.IsNullOrWhiteSpace(entity.BrokerId))
+                {
+                    entity.BrokerId = CurrentBrokerId;
+                }
+                if (string.IsNullOrWhiteSpace(entity.BrokerName))
+                {
+                    entity.BrokerName = CurrentBrokerName;
+                }
+                if (string.IsNullOrWhiteSpace(entity.BrokerId))
+                {
+                    throw new BrokerRequiredException(entry.Entity.GetType(), "BrokerId Required but not provided.");
+                }
+                if (string.IsNullOrWhiteSpace(entity.BrokerName))
+                {
+                    throw new BrokerRequiredException(entry.Entity.GetType(), "BrokerName Required but not provided.");
                 }
             }
         }
@@ -161,7 +267,15 @@ namespace Core.PersistentStore
             {
                 return true;
             }
+            if (typeof(IMustHaveCity).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
             if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+            if (typeof(IMustHaveCompany).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
@@ -169,6 +283,15 @@ namespace Core.PersistentStore
             {
                 return true;
             }
+            if (typeof(IMustHaveStore).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+            if (typeof(IMustHaveBroker).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+
             return false;
         }
 
@@ -179,8 +302,8 @@ namespace Core.PersistentStore
 
             if (typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> softDeleteFilter = e => !((ISoftDelete)e).IsDeleted;
-                expression = expression.AndAlsoOrDefault(softDeleteFilter);
+                Expression<Func<TEntity, bool>> filter = e => !((ISoftDelete)e).IsDeleted;
+                expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMayHaveCity).IsAssignableFrom(typeof(TEntity)))
@@ -190,20 +313,43 @@ namespace Core.PersistentStore
                  * But this causes a problem with EF Core (see https://github.com/aspnet/EntityFrameworkCore/issues/9502)
                  * So, we made a workaround to make it working. It works same as above.
                  */
-                Expression<Func<TEntity, bool>> mayHaveCityFilter = e => ((IMayHaveCity)e).CityId == CurrentCityId || (((IMayHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
-                expression = expression.AndAlsoOrDefault(mayHaveCityFilter);
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCity)e).CityId == CurrentCityId || (((IMayHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
+                expression = expression.AndAlsoOrDefault(filter);
+            }
+            
+            if (typeof(IMustHaveCity).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCity)e).CityId == CurrentCityId || (((IMustHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
+                expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> mayHaveCompanyFilter = e => ((IMayHaveCompany)e).CompanyId == CurrentCompanyId || (((IMayHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null);
-                expression = expression.AndAlsoOrDefault(mayHaveCompanyFilter);
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompany)e).CompanyId == CurrentCompanyId || (((IMayHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null);
+                expression = expression.AndAlsoOrDefault(filter);
+            }
+            if (typeof(IMustHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompany)e).CompanyId == CurrentCompanyId || (((IMustHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null);
+                expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> mayHaveStoreFilter = e => ((IMayHaveStore)e).StoreId == CurrentStoreId || (((IMayHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null);
-                expression = expression.AndAlsoOrDefault(mayHaveStoreFilter);
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveStore)e).StoreId == CurrentStoreId || (((IMayHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null);
+                expression = expression.AndAlsoOrDefault(filter);
+            }
+
+            if (typeof(IMustHaveStore).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveStore)e).StoreId == CurrentStoreId || (((IMustHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null);
+                expression = expression.AndAlsoOrDefault(filter);
+            }
+
+            if (typeof(IMustHaveBroker).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveBroker)e).BrokerId == CurrentBrokerId || (((IMustHaveBroker)e).BrokerId != CurrentBrokerId && CurrentBrokerId == null);
+                expression = expression.AndAlsoOrDefault(filter);
             }
 
             return expression;
