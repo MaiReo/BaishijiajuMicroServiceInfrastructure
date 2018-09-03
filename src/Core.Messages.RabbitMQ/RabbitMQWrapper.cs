@@ -66,6 +66,7 @@ namespace Core.Messages
             using (var channel = _persistentConnection.CreateModel())
             {
                 channel.ExchangeDeclare(exchange: descriptor.MessageGroup,
+                                    durable: true,
                                     type: "topic");
 
 
@@ -112,6 +113,7 @@ namespace Core.Messages
             };
 
             channel.ExchangeDeclare(exchange: descriptor.MessageGroup,
+                                 durable: true,
                                  type: "topic");
 
             Logger.LogInformation($"CreateConsumerChannel: ExchangeDeclare");
