@@ -17,9 +17,9 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
     {
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
-        public IServiceProvider ConfigureServices(IServiceCollection services)
+        public void ConfigureServices(IServiceCollection services)
         {
-            services.RegisterRequiredServices<Startup>();
+            services.RegisterRequiredServices(typeof(Startup).Assembly);
 
             var databaseId = Guid.NewGuid().ToString("N");
 
@@ -34,11 +34,12 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
                 o.UserName = "guest";
                 o.Password = "guest";
             });
+        }
 
-            var builder = services.AddAutoFacWithConvention<Startup>();
-            var provider = new AutofacServiceProvider(builder.Build());
-            return provider;
-
+        public void ConfigureContainer(ContainerBuilder builder)
+        {
+            builder.AddCoreModules();
+            builder.RegisterAssemblyByConvention(typeof(Startup).Assembly);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
