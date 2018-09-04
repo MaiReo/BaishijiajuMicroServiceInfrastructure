@@ -10,6 +10,7 @@ namespace Core.ServiceDiscovery
         protected override void Load(ContainerBuilder builder)
         {
             //builder.RegisterIfNot<IServiceDiscoveryHelper, ServiceDiscoveryHelper>(ServiceLifetime.Singleton);
+            builder.RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>(ServiceLifetime.Singleton);
 
             builder.Register(c => 
             {
