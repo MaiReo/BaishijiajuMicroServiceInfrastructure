@@ -19,8 +19,10 @@ namespace Abp.Modules
         {
             IocManager.IocContainer.Register(
                 Component
-                .For<IServiceDiscoveryHelper, ServiceDiscoveryHelper>()
-                .ImplementedBy<ServiceDiscoveryHelper>()
+                // .For<IServiceDiscoveryHelper, ServiceDiscoveryHelper>()
+                // .ImplementedBy<ServiceDiscoveryHelper>()
+                  .For<IServiceDiscoveryHelper>()
+                  .ImplementedBy<NullServiceDiscoveryHelper>()
                 .LifestyleSingleton(),
                 Component
                 .For<Action<ConsulClientConfiguration>>()
