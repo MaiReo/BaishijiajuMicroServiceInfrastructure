@@ -5,14 +5,15 @@ namespace Core.TestBase
 {
     public class UnitTestCoreSession : ICoreSession
     {
-        public UnitTestCoreSession(string cityId, Guid? brokerCompanyId,
+        public UnitTestCoreSession(string cityId,
+            SessionCompany company,
             SessionUser user,
             SessionOrganization organization = default,
             SessionStore store = default,
             SessionBroker broker = default)
         {
             City = new SessionCity(cityId);
-            Company = new SessionCompany(brokerCompanyId);
+            Company = company;
             User = user ?? new SessionUser();
             Organization = organization;
             Store = store;

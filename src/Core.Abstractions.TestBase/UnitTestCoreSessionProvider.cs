@@ -16,19 +16,32 @@ namespace Core.TestBase
             Session = new UnitTestCoreSession(null, null, _currentUser);
         }
 
-        public IDisposable Use(string cityId, Guid? brokerCompanyId)
+        public IDisposable Use(
+            string cityId,
+            Guid? companyId,
+            string companyName,
+            Guid? storeId,
+            string storeName,
+            string brokerId,
+            string brokerName)
         {
             lock (this)
             {
                 var currentSession = Session;
-                var newSession = new UnitTestCoreSession(cityId, brokerCompanyId, _currentUser);
-                var disposable = new SessionRestore(() => Session = currentSession);
+                var newSession = new UnitTestCoreSession(cityId,
+                    new SessionCompany(companyId, companyName),
+                    _currentUser,
+                    default,
+                    new SessionStore(storeId, storeName),
+                    new SessionBroker(brokerId, brokerName)
+                );
+                var disposable = new SessionRestore(() => Restore(currentSession));
                 Session = newSession;
                 return disposable;
             }
         }
 
-        internal void Restore(ICoreSession session)
+        private void Restore(ICoreSession session)
         {
             lock (this)
             {

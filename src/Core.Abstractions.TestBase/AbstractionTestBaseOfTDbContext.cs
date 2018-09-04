@@ -22,7 +22,7 @@ namespace Core.TestBase
                 },
                 contextLifetime: ServiceLifetime.Transient);
 
-            var builder =  base.RegisterRequiredServices(services);
+            var builder = base.RegisterRequiredServices(services);
 
             builder.RegisterGeneric(typeof(UnitTestDbContextResolver<>))
                   .AsSelf()
@@ -43,12 +43,42 @@ namespace Core.TestBase
 
         protected void UsingDbContext(string cityId, Guid? companyId, Action<TDbContext> action)
         {
-            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId))
+            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, default, default, default, default, default))
             using (var dbContext = Resolve<IDbContextResolver<TDbContext>>().GetDbContext())
             {
                 action?.Invoke(dbContext);
                 dbContext.SaveChanges();
             }
         }
+
+        protected void UsingDbContext(Action<TDbContext> action,
+           string cityId = default,
+           Guid? companyId = default, string companyName = default,
+           Guid? storeId = default, string storeName = default,
+           string brokerId = default, string brokerName = default)
+        {
+            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, companyName, storeId, storeName, brokerId, brokerName))
+            using (var dbContext = Resolve<IDbContextResolver<TDbContext>>().GetDbContext())
+            {
+                action?.Invoke(dbContext);
+                dbContext.SaveChanges();
+            }
+        }
+
+        protected T UsingDbContext<T>(Func<TDbContext, T> func,
+           string cityId = default,
+           Guid? companyId = default, string companyName = default,
+           Guid? storeId = default, string storeName = default,
+           string brokerId = default, string brokerName = default)
+        {
+            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, companyName, storeId, storeName, brokerId, brokerName))
+            using (var dbContext = Resolve<IDbContextResolver<TDbContext>>().GetDbContext())
+            {
+                var returnValue = func(dbContext);
+                dbContext.SaveChanges();
+                return returnValue;
+            }
+        }
+
     }
 }
