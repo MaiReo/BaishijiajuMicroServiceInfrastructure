@@ -128,7 +128,7 @@ namespace Core.PersistentStore
         {
             if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany entity)
             {
-                if (!entity.CompanyId.HasValue)
+                if (entity.CompanyId == default)
                 {
                     entity.CompanyId = CurrentCompanyId;
                 }
@@ -157,7 +157,7 @@ namespace Core.PersistentStore
                 }
                 if (string.IsNullOrWhiteSpace(entity.CompanyName))
                 {
-                     throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyName Required but not provided.");
+                    throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyName Required but not provided.");
                 }
             }
         }
@@ -171,7 +171,7 @@ namespace Core.PersistentStore
         {
             if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveStore entity)
             {
-                if (!entity.StoreId.HasValue)
+                if (entity.StoreId == default)
                 {
                     entity.StoreId = CurrentStoreId;
                 }
@@ -189,7 +189,7 @@ namespace Core.PersistentStore
                 {
                     entity.StoreId = CurrentStoreId.GetValueOrDefault();
                 }
-                if (!string.IsNullOrWhiteSpace(entity.StoreName))
+                if (string.IsNullOrWhiteSpace(entity.StoreName))
                 {
                     entity.StoreName = CurrentStoreName;
                 }
@@ -316,7 +316,7 @@ namespace Core.PersistentStore
                 Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCity)e).CityId == CurrentCityId || (((IMayHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
                 expression = expression.AndAlsoOrDefault(filter);
             }
-            
+
             if (typeof(IMustHaveCity).IsAssignableFrom(typeof(TEntity)))
             {
                 Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCity)e).CityId == CurrentCityId || (((IMustHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
