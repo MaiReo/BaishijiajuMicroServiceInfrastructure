@@ -10,7 +10,7 @@ namespace Core.Web.Startup
     /// <summary>
     /// 
     /// </summary>
-    public class ServiceHelper : DefaultServiceHelper, IServiceHelper, ILifestyleSingleton
+    public class ServiceHelper : DefaultServiceHelper, IServiceHelper
     {
         private readonly IHostingEnvironment hostingEnvironment;
 
@@ -22,12 +22,6 @@ namespace Core.Web.Startup
         {
             this.hostingEnvironment = hostingEnvironment;
         }
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <returns></returns>
-        protected override string ServiceId => Guid.NewGuid().ToString("N");
-
 
         protected override string ServiceName => hostingEnvironment.ApplicationName;
 
