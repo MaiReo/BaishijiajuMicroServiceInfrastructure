@@ -1,4 +1,5 @@
-﻿using Core.Extensions;
+﻿using Core.Abstractions.Dependency;
+using Core.Extensions;
 using Core.Session;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
@@ -9,7 +10,7 @@ using System.Text;
 
 namespace Core.Web.Startup
 {
-    public class HttpContextCoreSession : ICoreSession
+    public class HttpContextCoreSession : ICoreSession, ILifestyleSingleton
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
