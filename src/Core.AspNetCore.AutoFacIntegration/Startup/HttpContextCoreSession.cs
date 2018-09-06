@@ -51,7 +51,7 @@ namespace Core.Web.Startup
             }
             if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue(SessionConsts.CompanyId, out var value))
             {
-                return value.ToArray()?.FirstOrDefault().AsGuidOrDefault();
+                return value.ToArray()?.FirstOrDefault().AsGuidOrNull();
             }
             return default;
         }
@@ -132,7 +132,7 @@ namespace Core.Web.Startup
             }
             if (_httpContextAccessor.HttpContext.Request.Headers.TryGetValue(SessionConsts.StoreId, out var value))
             {
-                return value.ToArray()?.FirstOrDefault().AsGuidOrDefault();
+                return value.ToArray()?.FirstOrDefault().AsGuidOrNull();
             }
             return default;
         }

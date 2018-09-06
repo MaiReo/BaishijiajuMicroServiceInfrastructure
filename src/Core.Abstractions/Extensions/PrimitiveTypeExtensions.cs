@@ -4,6 +4,15 @@ namespace Core.Extensions
 {
     public static class PrimitiveTypeExtensions
     {
+        public static Guid? AsGuidOrNull(this string @this)
+        {
+            if (string.IsNullOrWhiteSpace(@this))
+            {
+                return default;
+            }
+            return Guid.TryParse(@this, out var value) ? value : default(Guid?);
+        }
+
         public static Guid AsGuidOrDefault(this string @this)
         {
             if (string.IsNullOrWhiteSpace(@this))
