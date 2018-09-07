@@ -1,7 +1,7 @@
 ﻿using Autofac;
 using Core.PersistentStore;
-using Core.Session;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
@@ -19,6 +19,7 @@ namespace Core.TestBase
                 opt =>
                 {
                     opt.UseInMemoryDatabase(databaseId);
+                    opt.ConfigureWarnings(warn => warn.Ignore(InMemoryEventId.TransactionIgnoredWarning));
                 },
                 contextLifetime: ServiceLifetime.Transient);
 
