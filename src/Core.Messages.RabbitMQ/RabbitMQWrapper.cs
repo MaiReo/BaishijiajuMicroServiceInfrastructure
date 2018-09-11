@@ -116,21 +116,15 @@ namespace Core.Messages
                                  durable: true,
                                  type: "topic");
 
-            Logger.LogInformation($"CreateConsumerChannel: ExchangeDeclare");
-
             channel.QueueDeclare(queue: _messageBusOptions.QueueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
 
-            Logger.LogInformation($"CreateConsumerChannel: QueueDeclare");
-
             channel.QueueBind(queue: _messageBusOptions.QueueName,
                                   exchange: descriptor.MessageGroup,
                                   routingKey: descriptor.MessageTopic);
-
-            Logger.LogInformation($"CreateConsumerChannel: QueueBind");
 
             var consumer = new EventingBasicConsumer(channel);
             consumer.Received += async (model, ea) =>
@@ -143,8 +137,6 @@ namespace Core.Messages
             channel.BasicConsume(queue: _messageBusOptions.QueueName,
                                  autoAck: false,
                                  consumer: consumer);
-
-            Logger.LogInformation($"CreateConsumerChannel: BasicConsume");
             return channel;
         }
 
