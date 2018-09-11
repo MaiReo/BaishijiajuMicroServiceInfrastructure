@@ -1,5 +1,6 @@
-﻿using Newtonsoft.Json;
-using Core.Messages.Bus;
+﻿using Core.Messages.Bus;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System.Text;
 
 namespace Core.Messages
@@ -11,11 +12,15 @@ namespace Core.Messages
 
         public DefaultMessageConverter(
             IMessageBus messageBus,
-            IMessageDescriptorResolver messageTopicResolver)
+            IMessageDescriptorResolver messageTopicResolver,
+            ILogger<DefaultMessageConverter> logger)
         {
-            this._messageBus = messageBus;
-            this._messageTopicResolver = messageTopicResolver;
+            _messageBus = messageBus;
+            _messageTopicResolver = messageTopicResolver;
+            Logger = logger;
         }
+
+        public ILogger<DefaultMessageConverter> Logger { get; }
 
         public IMessage Deserialize(IMessageDescriptor descriptor, byte[] message)
         {
@@ -31,8 +36,8 @@ namespace Core.Messages
             {
                 return null;
             }
-            var allMessageTypes = this._messageBus.GetAllHandledMessageTypes();
-            var type = this._messageTopicResolver.Resolve(descriptor, allMessageTypes);
+            var allMessageTypes = _messageBus.GetAllHandledMessageTypes();
+            var type = _messageTopicResolver.Resolve(descriptor, allMessageTypes);
             if (type == null)
             {
                 return null;
@@ -42,6 +47,7 @@ namespace Core.Messages
                 return null;
             }
             var stringMessage = Encoding.UTF8.GetString(message);
+            Logger.LogInformation($"[{descriptor.MessageGroup}][{descriptor.MessageTopic}]{stringMessage}");
             var typedMessageObject = JsonConvert.DeserializeObject(stringMessage, type) as IMessage;
 
             return typedMessageObject;
@@ -54,6 +60,7 @@ namespace Core.Messages
             {
                 stringMessage = JsonConvert.SerializeObject(message);
             }
+            Logger.LogInformation(stringMessage);
             var raw = Encoding.UTF8.GetBytes(stringMessage);
             return raw;
         }
