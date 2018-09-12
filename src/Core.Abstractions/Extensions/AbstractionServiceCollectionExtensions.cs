@@ -14,9 +14,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IMessageBusOptions>(options);
             return services;
         }
-        public static IServiceCollection AddMessageBus(this IServiceCollection services, Func<IServiceProvider, MessageBusOptions> optionsAction)
+        public static IServiceCollection AddMessageBus(this IServiceCollection services, Func<IServiceProvider, IMessageBusOptions> optionsAction)
         {
-            services.TryAddSingleton<IMessageBusOptions>(optionsAction);
+            services.TryAddSingleton(optionsAction);
             return services;
         }
 
