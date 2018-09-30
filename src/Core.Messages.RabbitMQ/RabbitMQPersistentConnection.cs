@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Core.Messages.Bus;
+using Core.ServiceDiscovery;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,16 +12,21 @@ namespace Core.Messages
     public class RabbitMQPersistentConnection : IRabbitMQPersistentConnection
     {
         private readonly IConnectionFactory _connectionFactory;
+        private readonly ServiceDiscoveryConfiguration _serviceDiscoveryConfiguration;
+        private readonly IMessageBusOptions _messageBusOptions;
         private readonly ILogger _logger;
         private IConnection _connection;
         private bool _disposed;
 
-        private object sync_root = new object();
+        private readonly object sync_root = new object();
 
-        public RabbitMQPersistentConnection(IConnectionFactory connectionFactory, ILogger<RabbitMQPersistentConnection> logger)
+        public RabbitMQPersistentConnection(IConnectionFactory connectionFactory,
+            ServiceDiscoveryConfiguration serviceDiscoveryConfiguration,
+            ILogger<RabbitMQPersistentConnection> logger)
         {
             _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
-            this._logger = (ILogger)logger ?? NullLogger.Instance;
+            _serviceDiscoveryConfiguration = serviceDiscoveryConfiguration;
+            _logger = (ILogger)logger ?? NullLogger.Instance;
         }
 
         public bool IsConnected
@@ -42,7 +49,10 @@ namespace Core.Messages
 
         public void Dispose()
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             _disposed = true;
 
@@ -60,10 +70,9 @@ namespace Core.Messages
         public bool TryConnect()
         {
             _logger.LogInformation("RabbitMQ Client is trying to connect");
-
             lock (sync_root)
             {
-                _connection = _connectionFactory.CreateConnection();
+                _connection = _connectionFactory.CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
 
                 if (IsConnected)
                 {
@@ -77,7 +86,7 @@ namespace Core.Messages
                 }
                 else
                 {
-                     _logger.LogCritical("FATAL ERROR: RabbitMQ connections could not be created and opened");
+                    _logger.LogCritical("FATAL ERROR: RabbitMQ connections could not be created and opened");
 
                     return false;
                 }
@@ -86,16 +95,22 @@ namespace Core.Messages
 
         private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
-             _logger.LogWarning("A RabbitMQ connection is shutdown. Trying to re-connect...");
+            _logger.LogWarning("A RabbitMQ connection is shutdown. Trying to re-connect...");
 
             TryConnect();
         }
 
         private void OnCallbackException(object sender, CallbackExceptionEventArgs e)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             _logger.LogWarning("A RabbitMQ connection throw exception. Trying to re-connect...");
 
@@ -104,7 +119,10 @@ namespace Core.Messages
 
         private void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
-            if (_disposed) return;
+            if (_disposed)
+            {
+                return;
+            }
 
             TryConnect();
         }
