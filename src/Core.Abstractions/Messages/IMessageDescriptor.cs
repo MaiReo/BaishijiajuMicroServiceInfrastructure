@@ -11,5 +11,6 @@
         /// 消息分组
         /// </summary>
         string MessageGroup { get; }
+
     }
 }

@@ -47,7 +47,10 @@ namespace Core.Messages.Bus
                 {
                     continue;
                 }
-
+                if (!@interface.IsGenericType)
+                {
+                    continue;
+                }
                 var genericArgs = @interface.GetGenericArguments();
                 if (genericArgs.Length == 1)
                 {

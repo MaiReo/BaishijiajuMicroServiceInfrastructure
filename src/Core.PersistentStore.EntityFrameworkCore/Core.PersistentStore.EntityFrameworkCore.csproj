@@ -4,12 +4,12 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Core.PersistentStore</RootNamespace>
     <LangVersion>latest</LangVersion>
-    <AssemblyVersion>2.1.4.0</AssemblyVersion>
-    <Version>2.1.4</Version>
+    <AssemblyVersion>2.1.5.0</AssemblyVersion>
+    <Version>2.1.5</Version>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core.Abstractions\Core.Abstractions.csproj" />

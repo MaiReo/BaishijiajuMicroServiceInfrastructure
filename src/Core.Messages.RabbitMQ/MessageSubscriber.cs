@@ -17,9 +17,9 @@ namespace Core.Messages
             IMessageDescriptorResolver messageTopicResolver,
             ILogger<MessageSubscriber> logger)
         {
-            this._messageBus = messageBus;
-            this._rabbitMQWrapper = rabbitMQWrapper;
-            this._messageTopicResolver = messageTopicResolver;
+            _messageBus = messageBus;
+            _rabbitMQWrapper = rabbitMQWrapper;
+            _messageTopicResolver = messageTopicResolver;
             Logger = (ILogger)logger ?? NullLogger.Instance;
         }
 
@@ -31,13 +31,13 @@ namespace Core.Messages
             {
                 throw new System.InvalidOperationException("already automatic subscribed");
             }
-            var messageTypes = this._messageBus.GetAllHandledMessageTypes();
+            var messageTypes = _messageBus.GetAllHandledMessageTypes();
 
             foreach (var messageType in messageTypes)
             {
-                var descriptor = this._messageTopicResolver.Resolve(messageType);
+                var descriptor = _messageTopicResolver.Resolve(messageType);
                 Logger.LogInformation($"AutoSubscribe: Found messageType:{messageType}, topic name: {descriptor?.MessageTopic}, group name: {descriptor?.MessageGroup}");
-                this._rabbitMQWrapper.Subscribe(descriptor, async msg => await this._messageBus.OnMessageReceivedAsync(msg));
+                _rabbitMQWrapper.Subscribe(descriptor, async (msg, _descriptor) => await _messageBus.OnMessageReceivedAsync(msg, _descriptor));
             }
             _isAutoSubscribed = true;
 

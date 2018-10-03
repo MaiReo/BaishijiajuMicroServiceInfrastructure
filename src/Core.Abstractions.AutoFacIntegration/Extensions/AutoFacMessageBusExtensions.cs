@@ -12,7 +12,9 @@ namespace Core.Messages.Bus.Extensions
         private static readonly Type[] _messageHandlerTypes = new[]
        {
            typeof(IMessageHandler<>),
-           typeof(IAsyncMessageHandler<>)
+           typeof(IRichMessageHandler<>),
+           typeof(IAsyncMessageHandler<>),
+           typeof(IAsyncRichMessageHandler<>)
         };
         public static IMessageBus RegisterMessageHandlers(this IMessageBus messageBus, IComponentContext componentContext)
         {

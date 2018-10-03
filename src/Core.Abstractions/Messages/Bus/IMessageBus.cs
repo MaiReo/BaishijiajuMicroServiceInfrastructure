@@ -9,9 +9,7 @@ namespace Core.Messages.Bus
     {
         Task PublishAsync<T>(T message) where T : IMessage;
 
-        void OnMessageReceived(IMessage message);
-
-        Task OnMessageReceivedAsync(IMessage message);
+        Task OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor);
 
         IDisposable Register(Type messageType, IMessageHandlerFactory factory);
 
