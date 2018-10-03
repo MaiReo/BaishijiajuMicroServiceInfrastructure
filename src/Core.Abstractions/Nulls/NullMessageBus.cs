@@ -8,7 +8,7 @@ namespace Core.Messages.Bus
 {
     public class NullMessageBus : IMessageBus
     {
-        Task IMessageBus.OnMessageReceivedAsync(IMessage message)
+        Task IMessageBus.OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
         {
             return Task.CompletedTask;
         }
@@ -23,10 +23,6 @@ namespace Core.Messages.Bus
             return new NullDisposableObject();
         }
 
-        void IMessageBus.OnMessageReceived(IMessage message)
-        {
-            // No Actions.
-        }
 
         void IMessageBus.Unregister(Type messageType, IMessageHandlerFactory factory)
         {

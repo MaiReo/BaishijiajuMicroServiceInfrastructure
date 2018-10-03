@@ -13,7 +13,6 @@ namespace Core.Messages
     {
         private readonly IConnectionFactory _connectionFactory;
         private readonly ServiceDiscoveryConfiguration _serviceDiscoveryConfiguration;
-        private readonly IMessageBusOptions _messageBusOptions;
         private readonly ILogger _logger;
         private IConnection _connection;
         private bool _disposed;
