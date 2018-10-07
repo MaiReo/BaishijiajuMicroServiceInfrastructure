@@ -1,24 +1,42 @@
 ﻿using Abp.Dependency;
-using System;
+using Castle.MicroKernel;
+using Castle.MicroKernel.Registration;
+using Core.Session;
+using Core.Session.Providers;
 
 namespace Core.Messages.Bus
 {
     public class MessageScopeCreator : IMessageScopeCreator, ISingletonDependency
     {
-        private readonly IIocResolver _iocResolver;
+        private readonly IIocManager _iocManager;
 
-        public MessageScopeCreator(IIocResolver iocResolver)
+        public MessageScopeCreator(IIocManager iocManager)
         {
-            _iocResolver = iocResolver;
+            _iocManager = iocManager;
         }
 
         public IMessageScope CreateScope(IMessage message, IRichMessageDescriptor messageDescriptor)
         {
-            //TODO:
-            // How can we resolve MessageCoreSessionProvider as ICoreSessionProvider?
-            // Well, try adding a ChildContainer and remove it on disposing?
-            // No.Hacking the global IOC is dangerous.
-            return new MessageScope(_iocResolver);
+            var name = nameof(MessageCoreSessionProvider);
+            var coreSessionProvider = new MessageCoreSessionProvider(message, messageDescriptor);
+
+
+            //TODO: The Child Kernel / Container has issues to use in this case.
+            //Cannot resolve as a Dependency correctly.
+            var childKernel = new DefaultKernel();
+
+            childKernel.Register(
+                Component
+                .For<ICoreSessionProvider>()
+                .Instance(coreSessionProvider)
+                .NamedAutomatically(name)
+                .LifestyleSingleton()
+                .IsDefault()
+                );
+
+            return new MessageScope(_iocManager, childKernel);
+
         }
+
     }
 }

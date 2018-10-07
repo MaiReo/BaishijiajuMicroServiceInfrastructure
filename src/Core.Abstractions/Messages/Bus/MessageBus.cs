@@ -15,18 +15,15 @@ namespace Core.Messages.Bus
 
         private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
         private readonly IMessagePublisher _messagePublisher;
-        private readonly IServiceProvider _serviceProvider;
         private readonly IMessageScopeCreator _scopeCreator;
 
         public MessageBus(
             IMessageHandlerFactoryStore messageHandlerFactoryStore,
             IMessagePublisher messagePublisher,
-            IServiceProvider serviceProvider,
             IMessageScopeCreator scopeCreator)
         {
             _messageHandlerFactoryStore = messageHandlerFactoryStore;
             _messagePublisher = messagePublisher;
-            _serviceProvider = serviceProvider;
             _scopeCreator = scopeCreator;
         }
 

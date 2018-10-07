@@ -20,6 +20,7 @@ namespace Core.Session
             City = new SessionCity(cityId);
             Company = new SessionCompany(companyId, companyName);
             Store = new SessionStore(storeId, storeName);
+            Broker = new SessionBroker(brokerId, brokerName);
             Organization = new SessionOrganization(organizationId, organizationName);
             User = new SessionUser(currentUserId, currentUserName);
         }
