@@ -1,7 +1,5 @@
-﻿using Core.Abstractions;
-using Core.Messages.Factories;
+﻿using Core.Messages.Bus.Factories;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -14,72 +12,69 @@ namespace Core.Messages.Bus
 {
     public class MessageBus : IMessageBus
     {
-        /// <summary>
-        /// All registered handler factories.
-        /// Key: Type of the event
-        /// Value: List of handler factories
-        /// </summary>
-        private readonly ConcurrentDictionary<Type, ICollection<IMessageHandlerFactory>> _handlerFactories;
 
+        private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
+        private readonly IMessagePublisher _messagePublisher;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IMessageScopeCreator _scopeCreator;
 
-        private MessageBus()
+        public MessageBus(
+            IMessageHandlerFactoryStore messageHandlerFactoryStore,
+            IMessagePublisher messagePublisher,
+            IServiceProvider serviceProvider,
+            IMessageScopeCreator scopeCreator)
         {
-            _handlerFactories = new ConcurrentDictionary<Type, ICollection<IMessageHandlerFactory>>();
-        }
-
-        public MessageBus(IServiceProvider serviceProvider) : this()
-        {
+            _messageHandlerFactoryStore = messageHandlerFactoryStore;
+            _messagePublisher = messagePublisher;
             _serviceProvider = serviceProvider;
+            _scopeCreator = scopeCreator;
         }
 
         /// <inheritdoc/>
         public virtual async Task PublishAsync<T>(T message) where T : IMessage
         {
-            var messagePublisher = (IMessagePublisher)_serviceProvider.GetService(typeof(IMessagePublisher));
-            if (messagePublisher == null)
-            {
-                return;
-            }
-            await messagePublisher.PublishAsync(message);
+            await _messagePublisher.PublishAsync(message);
         }
 
-        public virtual Task OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
+        public virtual async Task OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
         {
             if (message is null)
             {
-                return Task.CompletedTask;
+                return;
             }
-            return ProcessMessageAsync(message.GetType(), message, descriptor);
+            using (var scope = _scopeCreator.CreateScope(message, descriptor))
+            {
+                await ProcessMessageAsync(scope, message.GetType(), message, descriptor);
+            }
         }
 
-        protected async Task ProcessMessageAsync(Type messageType, IMessage message, IRichMessageDescriptor descriptor)
+        protected async Task ProcessMessageAsync(IMessageScope scope, Type messageType, IMessage message, IRichMessageDescriptor descriptor)
         {
             var exceptions = new List<Exception>();
 
             await new SynchronizationContextRemover();
 
-            foreach (var handlerFactories in GetHandlerFactories(messageType).ToList())
+            foreach (var handlerFactories in  _messageHandlerFactoryStore.GetHandlerFactories(messageType).ToList())
             {
-                foreach (var handlerFactory in handlerFactories.MessageHandlerFactories.ToList())
+                foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
                 {
                     var handlerType = handlerFactory.GetHandlerType();
 
                     if (IsAsyncRichMessageHandler(handlerType))
                     {
-                        await ProcessRichMessagecHandlingExceptionAsync(handlerFactory, handlerFactories.MessageType, message, descriptor, exceptions);
+                        await ProcessRichMessagecHandlingExceptionAsync(scope, handlerFactory, handlerFactories.MessageType, message, descriptor, exceptions);
                     }
                     else if (IsAsyncMessageHandler(handlerType))
                     {
-                        await ProcessMessagecHandlingExceptionAsync(handlerFactory, handlerFactories.MessageType, message, exceptions);
+                        await ProcessMessagecHandlingExceptionAsync(scope, handlerFactory, handlerFactories.MessageType, message, exceptions);
                     }
                     else if (IsRichMessageHandler(handlerType))
                     {
-                        ProcessRichMessageHandlingException(handlerFactory, handlerFactories.MessageType, message, descriptor, exceptions);
+                        ProcessRichMessageHandlingException(scope, handlerFactory, handlerFactories.MessageType, message, descriptor, exceptions);
                     }
                     else if (IsMessageHandler(handlerType))
                     {
-                        ProcessMessageHandlingException(handlerFactory, handlerFactories.MessageType, message, exceptions);
+                        ProcessMessageHandlingException(scope, handlerFactory, handlerFactories.MessageType, message, exceptions);
                     }
                     else
                     {
@@ -101,7 +96,7 @@ namespace Core.Messages.Bus
                     var baseMessageType = messageType.GetGenericTypeDefinition().MakeGenericType(baseArg);
                     var constructorArgs = ((IMessageWithInheritableGenericArgument)messageType).GetConstructorArgs();
                     var baseMessage = (IMessage)Activator.CreateInstance(baseMessageType, constructorArgs);
-                    await ProcessMessageAsync(baseMessageType, baseMessage, descriptor);
+                    await ProcessMessageAsync(scope, baseMessageType, baseMessage, descriptor);
                 }
             }
 
@@ -117,9 +112,9 @@ namespace Core.Messages.Bus
         }
 
 
-        private async Task ProcessRichMessagecHandlingExceptionAsync(IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
+        private async Task ProcessRichMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
         {
-            var asyncEventHandler = asyncHandlerFactory.GetHandler();
+            var asyncEventHandler = asyncHandlerFactory.GetHandler(scope);
 
             try
             {
@@ -147,13 +142,13 @@ namespace Core.Messages.Bus
             }
             finally
             {
-                asyncHandlerFactory.ReleaseHandler(asyncEventHandler);
+                asyncHandlerFactory.ReleaseHandler(scope, asyncEventHandler);
             }
         }
 
-        private async Task ProcessMessagecHandlingExceptionAsync(IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
+        private async Task ProcessMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
         {
-            var asyncEventHandler = asyncHandlerFactory.GetHandler();
+            var asyncEventHandler = asyncHandlerFactory.GetHandler(scope);
 
             try
             {
@@ -181,13 +176,13 @@ namespace Core.Messages.Bus
             }
             finally
             {
-                asyncHandlerFactory.ReleaseHandler(asyncEventHandler);
+                asyncHandlerFactory.ReleaseHandler(scope, asyncEventHandler);
             }
         }
 
-        private void ProcessRichMessageHandlingException(IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
+        private void ProcessRichMessageHandlingException(IMessageScope scope, IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
         {
-            var eventHandler = handlerFactory.GetHandler();
+            var eventHandler = handlerFactory.GetHandler(scope);
             try
             {
                 if (eventHandler == null)
@@ -214,13 +209,13 @@ namespace Core.Messages.Bus
             }
             finally
             {
-                handlerFactory.ReleaseHandler(eventHandler);
+                handlerFactory.ReleaseHandler(scope, eventHandler);
             }
         }
 
-        private void ProcessMessageHandlingException(IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
+        private void ProcessMessageHandlingException(IMessageScope scope, IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
         {
-            var eventHandler = handlerFactory.GetHandler();
+            var eventHandler = handlerFactory.GetHandler(scope);
             try
             {
                 if (eventHandler == null)
@@ -247,7 +242,7 @@ namespace Core.Messages.Bus
             }
             finally
             {
-                handlerFactory.ReleaseHandler(eventHandler);
+                handlerFactory.ReleaseHandler(scope, eventHandler);
             }
         }
 
@@ -282,67 +277,19 @@ namespace Core.Messages.Bus
                 .Any(i => i.GetGenericTypeDefinition() == typeof(IAsyncRichMessageHandler<>));
         }
 
-
-        private ICollection<IMessageHandlerFactory> GetOrCreateHandlerFactories(Type messageType)
-        {
-            return _handlerFactories.GetOrAdd(messageType, (type) => new HashSet<IMessageHandlerFactory>(new MessageHandlerFactoryUniqueComparer()));
-        }
-
-        private IEnumerable<MessageTypeWithMessageHandlerFactories> GetHandlerFactories(Type messageType)
-        {
-            foreach (var handlerFactory in _handlerFactories.Where(hf => ShouldTriggerMessageForHandler(messageType, hf.Key)))
-            {
-                yield return new MessageTypeWithMessageHandlerFactories(handlerFactory.Key, handlerFactory.Value);
-            }
-        }
-
-        private static bool ShouldTriggerMessageForHandler(Type messageType, Type registeredType)
-        {
-            //Should trigger same type
-            if (registeredType == messageType)
-            {
-                return true;
-            }
-
-            //Should trigger for inherited types
-            if (registeredType.IsAssignableFrom(messageType))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public IEnumerable<Type> GetAllHandledMessageTypes()
         {
-            return _handlerFactories.Keys.ToList();
+            return _messageHandlerFactoryStore.GetAllHandledMessageTypes();
         }
 
         public IDisposable Register(Type messageType, IMessageHandlerFactory factory)
         {
-            GetOrCreateHandlerFactories(messageType)
-                .Locking(factories => factories.Add(factory));
-            return new MessageHandlerFactoryUnregistrar(this, messageType, factory);
+            return _messageHandlerFactoryStore.Register(messageType, factory);
         }
 
         public void Unregister(Type messageType, IMessageHandlerFactory factory)
         {
-            GetOrCreateHandlerFactories(messageType).Locking(factories => factories.Remove(factory));
-        }
-
-
-
-        private class MessageTypeWithMessageHandlerFactories
-        {
-            public Type MessageType { get; }
-
-            public IEnumerable<IMessageHandlerFactory> MessageHandlerFactories { get; }
-
-            public MessageTypeWithMessageHandlerFactories(Type messageType, IEnumerable<IMessageHandlerFactory> eventHandlerFactories)
-            {
-                MessageType = messageType;
-                MessageHandlerFactories = eventHandlerFactories;
-            }
+            _messageHandlerFactoryStore.Unregister(messageType, factory);
         }
 
         // Reference from
