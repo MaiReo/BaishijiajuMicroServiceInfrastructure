@@ -1,10 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\common.props"></Import>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Core.ServiceDiscovery</RootNamespace>
-    <AssemblyVersion>2.1.5.0</AssemblyVersion>
-    <Version>2.1.5</Version>
+    <AssemblyName>Core.ServiceDiscovery.Consul.AutoFacIntegration</AssemblyName>
+    <PackageId>Baishijiaju.MicroService.Infrastructure.ServiceDiscovery.Consul.AutoFacIntegration</PackageId>
   </PropertyGroup>
 
   <ItemGroup>

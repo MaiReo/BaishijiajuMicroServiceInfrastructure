@@ -1,11 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\common.props"></Import>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Core.PersistentStore</RootNamespace>
-    <LangVersion>latest</LangVersion>
-    <AssemblyVersion>2.1.5.0</AssemblyVersion>
-    <Version>2.1.5</Version>
+    <PackageId>Baishijiaju.MicroService.Infrastructure.PersistentStore.EFCore</PackageId>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
