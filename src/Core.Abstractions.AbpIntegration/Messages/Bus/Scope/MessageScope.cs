@@ -1,41 +1,40 @@
 ﻿using Abp.Dependency;
 using Castle.MicroKernel;
-using Castle.Windsor;
+using Core.Session;
 using System;
 
 namespace Core.Messages.Bus
 {
     internal class MessageScope : IMessageScope
     {
-        private readonly IIocManager _iocManager;
+        private IIocManager _iocManager;
+        private ICoreSessionProvider _sessionProvider;
 
-        private readonly IKernel _kernel;
-
-        public MessageScope(IIocManager iocManager, IKernel kernel)
+        public MessageScope(IIocManager iocManager, ICoreSessionProvider sessionProvider)
         {
             _iocManager = iocManager;
-            _kernel = kernel;
-            _iocManager.IocContainer.Kernel.AddChildKernel(_kernel);
+            _sessionProvider = sessionProvider;
         }
-
-
 
         public void Release(IMessageHandler handler)
         {
             if (disposedValue)
             {
-                throw new ObjectDisposedException(nameof(_kernel));
+                throw new ObjectDisposedException(nameof(_iocManager));
             }
-            _kernel.ReleaseComponent(handler);
+            _iocManager.Release(handler);
         }
 
         public object Resolve(Type type)
         {
             if (disposedValue)
             {
-                throw new ObjectDisposedException(nameof(_kernel));
+                throw new ObjectDisposedException(nameof(_iocManager));
             }
-            return _kernel.Resolve(type);
+            return _iocManager.IocContainer.Resolve(type, new Arguments
+            {
+                [typeof(ICoreSessionProvider)] = _sessionProvider
+            });
         }
 
         #region IDisposable Support
@@ -47,10 +46,9 @@ namespace Core.Messages.Bus
             {
                 if (disposing)
                 {
-                    _iocManager.IocContainer.Kernel.RemoveChildKernel(_kernel);
-                    _kernel.Dispose();
                 }
-
+                _iocManager = null;
+                _sessionProvider = null;
                 // TODO: 释放未托管的资源(未托管的对象)并在以下内容中替代终结器。
                 // TODO: 将大型字段设置为 null。
 

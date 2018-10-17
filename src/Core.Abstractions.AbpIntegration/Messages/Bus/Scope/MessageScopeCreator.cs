@@ -17,24 +17,9 @@ namespace Core.Messages.Bus
 
         public IMessageScope CreateScope(IMessage message, IRichMessageDescriptor messageDescriptor)
         {
-            var name = nameof(MessageCoreSessionProvider);
             var coreSessionProvider = new MessageCoreSessionProvider(message, messageDescriptor);
 
-
-            //TODO: The Child Kernel / Container has issues to use in this case.
-            //Cannot resolve as a Dependency correctly.
-            var childKernel = new DefaultKernel();
-
-            childKernel.Register(
-                Component
-                .For<ICoreSessionProvider>()
-                .Instance(coreSessionProvider)
-                .NamedAutomatically(name)
-                .LifestyleSingleton()
-                .IsDefault()
-                );
-
-            return new MessageScope(_iocManager, childKernel);
+            return new MessageScope(_iocManager, coreSessionProvider);
 
         }
 
