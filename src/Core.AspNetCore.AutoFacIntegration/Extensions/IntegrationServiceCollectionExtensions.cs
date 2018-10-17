@@ -40,8 +40,7 @@ namespace Microsoft.Extensions.DependencyInjection
              *  To fix: Adds package Microsoft.AspNetCore.Mvc.Formatters.Json >= 2.0.0
              *  More detail: See https://team.baishijiaju.com:8443/tfs/HouseCoolCollection/Baishijiaju.Housecool%20v2.0/_wiki?pagePath=%2FFAQ%2F%E4%BD%BF%E7%94%A8AddMvcCore%E4%BB%A3%E6%9B%BFAddMvc
              */
-            //TODO: 需要统一格式化时间字符串看情况再作处理
-            mvcCoreBuilder.AddJsonFormatters(/*o => o.DateFormatString = "o"*/);
+            mvcCoreBuilder.AddJsonFormatters(o => o.DateFormatString = "yyyy-MM-dd HH:mm:ss");
             mvcCoreBuilder.AddControllersAsServices();
             return mvcCoreBuilder;
         }

@@ -1,4 +1,5 @@
 ﻿using Core.Messages.Bus;
+using Core.Messages.Bus.Factories;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Text;
@@ -7,15 +8,15 @@ namespace Core.Messages
 {
     public class DefaultMessageConverter : IMessageConverter
     {
-        private readonly IMessageBus _messageBus;
+        private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
         private readonly IMessageDescriptorResolver _messageTopicResolver;
 
         public DefaultMessageConverter(
-            IMessageBus messageBus,
+            IMessageHandlerFactoryStore  messageHandlerFactoryStore,
             IMessageDescriptorResolver messageTopicResolver,
             ILogger<DefaultMessageConverter> logger)
         {
-            _messageBus = messageBus;
+            _messageHandlerFactoryStore = messageHandlerFactoryStore;
             _messageTopicResolver = messageTopicResolver;
             Logger = logger;
         }
@@ -36,7 +37,7 @@ namespace Core.Messages
             {
                 return null;
             }
-            var allMessageTypes = _messageBus.GetAllHandledMessageTypes();
+            var allMessageTypes = _messageHandlerFactoryStore.GetAllHandledMessageTypes();
             var type = _messageTopicResolver.Resolve(descriptor, allMessageTypes);
             if (type == null)
             {

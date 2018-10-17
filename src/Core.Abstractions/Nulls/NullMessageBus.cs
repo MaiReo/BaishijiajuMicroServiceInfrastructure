@@ -1,4 +1,4 @@
-﻿using Core.Messages.Factories;
+﻿using Core.Messages.Bus.Factories;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +26,7 @@ namespace Core.Messages.Bus
 
         void IMessageBus.Unregister(Type messageType, IMessageHandlerFactory factory)
         {
-            // No Actions.
+            // No Action.
         }
 
         IEnumerable<Type> IMessageBus.GetAllHandledMessageTypes()
@@ -35,13 +35,5 @@ namespace Core.Messages.Bus
         }
 
         public static NullMessageBus Instance => new NullMessageBus();
-    }
-
-    internal class NullDisposableObject : IDisposable
-    {
-        public void Dispose()
-        {
-            // No Actions.
-        }
     }
 }
