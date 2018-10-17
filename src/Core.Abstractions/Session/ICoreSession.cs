@@ -6,12 +6,12 @@
 
         SessionCompany Company { get; }
 
-        SessionOrganization Organization { get; }
-
-        SessionUser User { get; }
-
         SessionStore Store { get; }
 
         SessionBroker Broker { get; }
+
+        SessionOrganization Organization { get; }
+
+        SessionUser User { get; }
     }
 }

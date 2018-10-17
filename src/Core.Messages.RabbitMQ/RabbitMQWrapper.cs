@@ -5,6 +5,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Core.Messages
@@ -71,6 +72,15 @@ namespace Core.Messages
 
                 var properties = channel.CreateBasicProperties();
                 properties.DeliveryMode = 2; // persistent
+
+                if (descriptor is IRichMessageDescriptor rich && rich.Headers != null)
+                {
+                    var headers = properties.Headers = properties.Headers ?? new Dictionary<string, object>();
+                    foreach (var item in rich.Headers)
+                    {
+                        headers.Add(item.Key, item.Value);
+                    }
+                }
 
                 channel.BasicPublish(exchange: descriptor.MessageGroup,
                                  routingKey: descriptor.MessageTopic,

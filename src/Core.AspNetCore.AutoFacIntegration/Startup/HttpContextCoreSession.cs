@@ -10,7 +10,7 @@ using System.Text;
 
 namespace Core.Web.Startup
 {
-    public class HttpContextCoreSession : ICoreSession, ILifestyleSingleton
+    public class HttpContextCoreSession : ICoreSession
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 

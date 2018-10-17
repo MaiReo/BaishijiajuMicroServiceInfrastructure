@@ -1,4 +1,6 @@
-﻿using Core.Infrastructure.Abstraction.Tests.Web.EFCore;
+﻿using Core.Abstraction.Tests.Web.Messages;
+using Core.Infrastructure.Abstraction.Tests.Web.EFCore;
+using Core.Messages;
 using Core.Messages.Bus;
 using Core.PersistentStore.Repositories;
 using Core.PersistentStore.Repositories.Extensions;
@@ -14,13 +16,15 @@ namespace Core.Infrastructure.Abstraction.Tests.Web.Controllers
 {
     public class HomeController : Controller
     {
-        public IActionResult Index(
+        public async ValueTask<IActionResult> Index(
             [FromServices]IRepository<WebEntity> repository,
             [FromServices]IRepository<WebEntity, int> repositoryWithKey,
             [FromServices]IAsyncRepository<WebEntity> asyncRepository,
-            [FromServices]IAsyncRepository<WebEntity, int> asyncRepositoryWithKey)
+            [FromServices]IAsyncRepository<WebEntity, int> asyncRepositoryWithKey,
+            [FromServices]IMessageBus messageBus)
         {
             var repositoryStatus = "OK";
+            var messageBusStatus = "OK";
             try
             {
                 var hashSet = new HashSet<DbContext>
@@ -36,10 +40,22 @@ namespace Core.Infrastructure.Abstraction.Tests.Web.Controllers
             {
                 repositoryStatus = "Error";
             }
+            try
+            {
+                var message = new WebTestMessage();
+                var descriptor = new RichMessageDescriptor("", nameof(WebTestMessage).ToLowerInvariant());
+                await messageBus.OnMessageReceivedAsync(message, descriptor);
+            }
+            catch (Exception)
+            {
+                messageBusStatus = "Error";
+            }
             return Json(new
             {
-                RepositoryStatus = repositoryStatus
+                RepositoryStatus = repositoryStatus,
+                MessageBusStatus = messageBusStatus
             });
         }
+
     }
 }

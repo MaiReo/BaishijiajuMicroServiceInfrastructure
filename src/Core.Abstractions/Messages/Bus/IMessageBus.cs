@@ -1,4 +1,4 @@
-﻿using Core.Messages.Factories;
+﻿using Core.Messages.Bus.Factories;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

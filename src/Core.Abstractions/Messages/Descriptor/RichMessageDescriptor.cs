@@ -8,7 +8,7 @@ namespace Core.Messages
 
         public RichMessageDescriptor(string messageGroup, string messageTopic) : base(messageGroup, messageTopic)
         {
-            
+            Headers = new Dictionary<string, object>();
         }
 
         public RichMessageDescriptor(string messageGroup, string messageTopic, bool redelivered, string contentEncoding, string contentType, string messageId, bool? persistent, IDictionary<string, object> headers) : this(messageGroup, messageTopic)

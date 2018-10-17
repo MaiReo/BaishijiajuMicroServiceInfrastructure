@@ -1,7 +1,9 @@
 ﻿using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Core.Messages;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Extensions;
+using Core.Messages.Fake;
 using Core.ServiceDiscovery;
 using Core.Session;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,16 +75,18 @@ namespace Core.TestBase
                 .As<ICoreSessionProvider>()
                 .SingleInstance();
 
-            containerBuilder.RegisterType<UnitTestCurrentUser>()
+            containerBuilder
+                .RegisterType<UnitTestCurrentUser>()
+                .AsSelf()
+                .SingleInstance();
+
+            containerBuilder
+                .RegisterType<FakeMessagePublisherWrapper>()
+                .As<IMessagePublisherWrapper>()
                 .AsSelf()
                 .SingleInstance();
 
             RegisterDependency(containerBuilder);
-
-            //containerBuilder.Register(c => c.Resolve<IComponentContext>().Resolve<UnitTestCoreSessionProvider>().Session)
-            //    .As<ICoreSession>()
-            //    .OnlyIf(c => c.IsRegistered(new TypedService(typeof(UnitTestCoreSessionProvider))))
-            //    .IfNotRegistered(typeof(ICoreSession));
 
             return containerBuilder;
         }
@@ -98,6 +102,7 @@ namespace Core.TestBase
 
         private void ConstructProperties()
         {
+            //Make FakeMessagePublisherWrapper
             MessageBus = Resolve<IMessageBus>();
             lock (MessageBus)
             {

@@ -2,6 +2,7 @@
 using Core.Messages;
 using Core.PersistentStore;
 using Core.ServiceDiscovery;
+using Core.Session;
 
 namespace Autofac
 {
@@ -17,6 +18,8 @@ namespace Autofac
             builder.RegisterModule<ConsulModule>();
             builder.RegisterModule<EntityFrameworkCoreModule>();
             builder.RegisterAssemblyByConvention(typeof(AutofacContainerBuilderExtensions).Assembly);
+            builder.Register(c => c.Resolve<ICoreSessionProvider>().Session)
+                   .As<ICoreSession>();
         }
     }
 }
