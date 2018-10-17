@@ -69,6 +69,13 @@ namespace Core.TestBase
             {
                 containerBuilder.RegisterAssemblyByConvention(runtimeThisAssembly);
             }
+
+            containerBuilder
+               .RegisterType<NullServiceDiscoveryHelper>()
+               .AsSelf()
+               .As<IServiceDiscoveryHelper>()
+               .SingleInstance();
+
             containerBuilder
                 .RegisterType<UnitTestCoreSessionProvider>()
                 .AsSelf()

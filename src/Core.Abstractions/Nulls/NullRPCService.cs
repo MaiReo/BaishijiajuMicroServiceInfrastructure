@@ -16,5 +16,7 @@ namespace Core.RemoteCall
         {
             return new ValueTask<RPCHttpResult<TResult>>();
         }
+
+        public static NullRPCService Instance => new NullRPCService();
     }
 }
