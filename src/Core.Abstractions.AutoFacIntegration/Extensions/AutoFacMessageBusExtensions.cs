@@ -1,6 +1,6 @@
 ﻿using Autofac;
 using Autofac.Core;
-using Core.Messages.Factories;
+using Core.Messages.Bus.Factories;
 using System;
 using System.Linq;
 
@@ -16,9 +16,9 @@ namespace Core.Messages.Bus.Extensions
            typeof(IAsyncMessageHandler<>),
            typeof(IAsyncRichMessageHandler<>)
         };
-        public static IMessageBus RegisterMessageHandlers(this IMessageBus messageBus, IComponentContext componentContext)
+        public static IMessageBus RegisterMessageHandlers(this IMessageBus messageBus, ILifetimeScope lifetimeScope)
         {
-            foreach (var registration in componentContext.ComponentRegistry.Registrations)
+            foreach (var registration in lifetimeScope.ComponentRegistry.Registrations)
             {
                 var handlerType = registration.Activator.LimitType;
                 var services = registration.Services.OfType<IServiceWithType>().Select(x => x.ServiceType);
@@ -39,7 +39,7 @@ namespace Core.Messages.Bus.Extensions
                         continue;
                     }
                     var messageType = service.GetGenericArguments().First();
-                    messageBus.Register(messageType, new AutoFacMessageHandlerFactory(componentContext, handlerType));
+                    messageBus.Register(messageType, new IocMessageHandlerFactory(handlerType));
                 }
             }
             return messageBus;

@@ -10,9 +10,9 @@ namespace Microsoft.AspNetCore.Builder
     {
         public static IApplicationBuilder UseMessageBus(this IApplicationBuilder app)
         {
-            var messageBus = app.ApplicationServices.GetRequiredService<IMessageBus>();
-            var componentContext = app.ApplicationServices.GetRequiredService<IComponentContext>();
-            messageBus.RegisterMessageHandlers(componentContext);
+            var lifetimeScope = app.ApplicationServices.GetRequiredService<ILifetimeScope>();
+            var messageBus = lifetimeScope.Resolve<IMessageBus>();
+            messageBus.RegisterMessageHandlers(lifetimeScope);
             return app;
         }
     }

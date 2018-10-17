@@ -1,7 +1,6 @@
-﻿using Core.Messages.Factories;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Core.Messages.Bus
+namespace Core.Messages.Bus.Factories
 {
     internal class MessageHandlerFactoryUniqueComparer : IEqualityComparer<IMessageHandlerFactory>
     {

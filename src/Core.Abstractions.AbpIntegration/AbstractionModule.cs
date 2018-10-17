@@ -4,6 +4,7 @@ using Core.DependencyRegistrars;
 using Core.Messages;
 using Core.Messages.Bus;
 using Core.ServiceDiscovery;
+using Core.Session;
 using Core.Wrappers;
 using System.Net.Http;
 
@@ -15,7 +16,7 @@ namespace Abp.Modules
         {
             IocManager.AddConventionalRegistrar(new MessageHandlerConventionalRegistrar());
             IocManager.IocContainer.Install(new MessageBusInstaller(IocManager));
-           
+
         }
 
         public override void Initialize()
@@ -29,6 +30,7 @@ namespace Abp.Modules
             IocManager.RegisterIfNot<IMessagePublisher, MessagePublisher>(DependencyLifeStyle.Transient);
             IocManager.RegisterIfNot<IMessageDescriptorResolver, MessageDescriptorResolver>();
             IocManager.RegisterIfNot<IMessageConverter, DefaultMessageConverter>();
+            IocManager.RegisterIfNot<IMessageScopeCreator, NullMessageScopeCreator>();
             IocManager.RegisterIfNot<IMessageBus, MessageBus>();
             IocManager.RegisterIfNot<HttpMessageHandler, HttpClientHandler>();
             IocManager.RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>();
@@ -41,11 +43,18 @@ namespace Abp.Modules
                    .UsingFactoryMethod(krnl => krnl.Resolve<IHttpClientWrapper>().HttpClient)
                    );
             }
-
             IocManager.RegisterIfNot<IMessageSubscriber, NullMessageSubscriber>();
             IocManager.RegisterIfNot<IMessagePublisherWrapper, NullMessagePublisherWrapper>();
             IocManager.RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>();
-            
+            IocManager.RegisterIfNot<ICoreSessionProvider, NullCoreSessionProvider>();
+            if (!IocManager.IsRegistered<ICoreSession>())
+            {
+                IocManager.IocContainer.Register(
+                   Component
+                   .For<ICoreSession>()
+                   .UsingFactoryMethod(krnl => krnl.Resolve<ICoreSessionProvider>().Session)
+                   );
+            }
         }
     }
 }

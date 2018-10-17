@@ -1,6 +1,7 @@
 ﻿using Core.Messages.Bus;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Linq;
 
 namespace Core.Messages
 {
@@ -31,7 +32,7 @@ namespace Core.Messages
             {
                 throw new System.InvalidOperationException("already automatic subscribed");
             }
-            var messageTypes = _messageBus.GetAllHandledMessageTypes();
+            var messageTypes = _messageBus.GetAllHandledMessageTypes().ToList();
 
             foreach (var messageType in messageTypes)
             {

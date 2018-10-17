@@ -3,31 +3,35 @@ using Castle.MicroKernel;
 using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
-using Core.Abstractions.AbpIntegration;
-using Core.Messages.Factories;
-using System;
+using Core.Messages.Bus.Factories;
 
 namespace Core.Messages.Bus
 {
     internal class MessageBusInstaller : IWindsorInstaller
     {
         private readonly IIocResolver _iocResolver;
-        private IMessageBus _messageBus;
+        private IMessageHandlerFactoryStore  _messageHandlerFactoryStore;
 
         public MessageBusInstaller(IIocResolver iocResolver)
         {
-            this._iocResolver = iocResolver;
+            _iocResolver = iocResolver;
         }
 
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
             container.Register(
                 Component
-                .For<IMessageBus>()
-                .UsingFactoryMethod(krnl => new MessageBus(new CastleByPassServiceProvider(krnl)))
+                .For<IMessageHandlerFactoryStore, MessageHandlerFactoryStore>()
+                .ImplementedBy<MessageHandlerFactoryStore>()
                 .LifestyleSingleton()
             );
-            _messageBus = container.Resolve<IMessageBus>();
+            container.Register(
+                Component
+                .For<IMessageBus, MessageBus>()
+                .ImplementedBy<MessageBus>()
+                .LifestyleTransient()
+            );
+            _messageHandlerFactoryStore = container.Resolve<IMessageHandlerFactoryStore>();
             container.Kernel.ComponentRegistered += RegisterMessageHandler;
         }
 
@@ -54,7 +58,7 @@ namespace Core.Messages.Bus
                 var genericArgs = @interface.GetGenericArguments();
                 if (genericArgs.Length == 1)
                 {
-                    _messageBus.Register(genericArgs[0], new IocMessageHandlerFactory(_iocResolver, handler.ComponentModel.Implementation));
+                    _messageHandlerFactoryStore.Register(genericArgs[0], new IocMessageHandlerFactory(handler.ComponentModel.Implementation));
                 }
             }
         }
