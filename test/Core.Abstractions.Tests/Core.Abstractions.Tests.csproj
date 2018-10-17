@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\common.props"></Import>
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <LangVersion>latest</LangVersion>
     <IsPackable>false</IsPackable>
-    <AssemblyVersion>2.1.5.0</AssemblyVersion>
-    <Version>2.1.5</Version>
   </PropertyGroup>
 
   <ItemGroup>
