@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 
 namespace Core.Extensions
 {
@@ -66,6 +67,15 @@ namespace Core.Extensions
                 return default;
             }
             return @this.Value.ToString("o");
+        }
+
+        public static string ToUrlEncodedString(this string @this)
+        {
+            if (string.IsNullOrWhiteSpace(@this))
+            {
+                return default;
+            }
+            return WebUtility.UrlEncode(@this);
         }
     }
 }

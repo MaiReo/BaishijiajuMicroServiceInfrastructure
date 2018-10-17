@@ -24,7 +24,7 @@ namespace Core.Abstractions.Tests
             ;
         }
 
-        public Task PublishAsync(IMessageWrapper messageWrapper)
+        public ValueTask PublishAsync(IMessageWrapper messageWrapper)
         {
             var messageBus = _iocResolver.Resolve<IMessageBus>();
             return messageBus.OnMessageReceivedAsync(messageWrapper.Message, messageWrapper.Descriptor as IRichMessageDescriptor);

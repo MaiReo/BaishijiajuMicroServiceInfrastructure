@@ -9,10 +9,10 @@ namespace Core.Messages
             // No Actions.
         }
 
-        public Task PublishAsync(IMessageWrapper messageWrapper)
+        public ValueTask PublishAsync(IMessageWrapper messageWrapper)
         {
             // No Actions.
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
         public static NullMessagePublisherWrapper Instance => new NullMessagePublisherWrapper();

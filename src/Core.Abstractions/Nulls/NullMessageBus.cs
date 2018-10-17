@@ -8,14 +8,14 @@ namespace Core.Messages.Bus
 {
     public class NullMessageBus : IMessageBus
     {
-        Task IMessageBus.OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
+        ValueTask IMessageBus.OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
         {
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
-        Task IMessageBus.PublishAsync<T>(T message)
+        ValueTask IMessageBus.PublishAsync<T>(T message)
         {
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
         IDisposable IMessageBus.Register(Type messageType, IMessageHandlerFactory messageHandlerFactory)

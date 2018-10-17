@@ -21,7 +21,7 @@ namespace Core.Messages
                 _messageConverter.Serialize(messageWrapper.Message));
         }
 
-        public Task PublishAsync(IMessageWrapper messageWrapper)
+        public ValueTask PublishAsync(IMessageWrapper messageWrapper)
         {
             return _rabbitMQWrapper.PublishAsync(messageWrapper.Descriptor,
                 _messageConverter.Serialize(messageWrapper.Message));

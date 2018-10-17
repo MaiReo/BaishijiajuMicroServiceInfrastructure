@@ -14,6 +14,8 @@
         public string ServiceName { get; set; }
 
         public string[] ServiceTags { get; set; }
+
+        public bool AutoRegister { get; set; }
        
     }
 }

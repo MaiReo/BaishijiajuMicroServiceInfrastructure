@@ -28,12 +28,12 @@ namespace Core.Messages.Bus
         }
 
         /// <inheritdoc/>
-        public virtual async Task PublishAsync<T>(T message) where T : IMessage
+        public virtual async ValueTask PublishAsync<T>(T message) where T : IMessage
         {
             await _messagePublisher.PublishAsync(message);
         }
 
-        public virtual async Task OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
+        public virtual async ValueTask OnMessageReceivedAsync(IMessage message, IRichMessageDescriptor descriptor)
         {
             if (message is null)
             {
@@ -45,7 +45,7 @@ namespace Core.Messages.Bus
             }
         }
 
-        protected async Task ProcessMessageAsync(IMessageScope scope, Type messageType, IMessage message, IRichMessageDescriptor descriptor)
+        protected async ValueTask ProcessMessageAsync(IMessageScope scope, Type messageType, IMessage message, IRichMessageDescriptor descriptor)
         {
             var exceptions = new List<Exception>();
 
@@ -109,7 +109,7 @@ namespace Core.Messages.Bus
         }
 
 
-        private async Task ProcessRichMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
+        private async ValueTask ProcessRichMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
         {
             var asyncEventHandler = asyncHandlerFactory.GetHandler(scope);
 
@@ -127,7 +127,7 @@ namespace Core.Messages.Bus
                     new[] { messageType, typeof(IRichMessageDescriptor) }
                 );
 
-                await (Task)method.Invoke(asyncEventHandler, new object[] { message, descriptor });
+                await (ValueTask)method.Invoke(asyncEventHandler, new object[] { message, descriptor });
             }
             catch (TargetInvocationException ex)
             {
@@ -143,7 +143,7 @@ namespace Core.Messages.Bus
             }
         }
 
-        private async Task ProcessMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
+        private async ValueTask ProcessMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
         {
             var asyncEventHandler = asyncHandlerFactory.GetHandler(scope);
 
@@ -161,7 +161,7 @@ namespace Core.Messages.Bus
                     new[] { messageType }
                 );
 
-                await (Task)method.Invoke(asyncEventHandler, new object[] { message });
+                await (ValueTask)method.Invoke(asyncEventHandler, new object[] { message });
             }
             catch (TargetInvocationException ex)
             {

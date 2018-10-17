@@ -14,7 +14,7 @@ namespace Core.Abstractions.Tests
 
 
         [Fact(Skip = "Failed to override registrations with Windsor Child Kernel facility.")]
-        public async Task MessageBusRecursiveScopeTest()
+        public async ValueTask MessageBusRecursiveScopeTest()
         {
             var rootCoreSessionProvider = Resolve<ICoreSessionProvider>();
 

@@ -46,14 +46,14 @@ namespace Core.Abstractions.Tests
     {
 
         [Fact(DisplayName = "消息总线处理消息")]
-        public async Task Should_Trigger()
+        public async ValueTask Should_Trigger()
         {
             await MessageBus.OnMessageReceivedAsync(new TestMessage { Name = "testmsg" }, null);
             Resolve<TestMessageHandler>().Parameters.Single(x => x.Name == "testmsg");
         }
 
         [Fact(DisplayName = "消息总线处理富消息")]
-        public async Task Should_Trigger_Rich()
+        public async ValueTask Should_Trigger_Rich()
         {
             await MessageBus.OnMessageReceivedAsync(new TestMessage { Name = "testmsg" }, new RichMessageDescriptor("test.group", "test.topic"));
             Resolve<TestRichMessageHandler>().Parameters.Single(x => x.Item1.Name == "testmsg" && x.Item2.MessageTopic == "test.topic");
