@@ -4,6 +4,7 @@ using Core.BackgroundJobs;
 using Core.DependencyRegistrars;
 using Core.Messages;
 using Core.Messages.Bus;
+using Core.RemoteCall;
 using Core.ServiceDiscovery;
 using Core.Session;
 using Core.Wrappers;
@@ -36,6 +37,7 @@ namespace Abp.Modules
             IocManager.RegisterIfNot<HttpMessageHandler, HttpClientHandler>();
             IocManager.RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>();
             IocManager.RegisterIfNot<IServiceHelper, DefaultServiceHelper>();
+            IocManager.RegisterIfNot<IRPCService, RPCService>();
             IocManager.RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>();
             if (!IocManager.IsRegistered<HttpClient>())
             {

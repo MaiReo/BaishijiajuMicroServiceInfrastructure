@@ -5,6 +5,7 @@ using Core.Messages;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Factories;
 using Core.PersistentStore.Repositories;
+using Core.RemoteCall;
 using Core.ServiceDiscovery;
 using Core.Session;
 using Core.Wrappers;
@@ -27,6 +28,7 @@ namespace Core.Abstractions
                    .RegisterIfNot<IServiceHelper, DefaultServiceHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<HttpMessageHandler, HttpClientHandler>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IRPCService, RPCService>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<ICoreSession, NullCoreSession>(ServiceLifetime.Singleton)
                    ;
