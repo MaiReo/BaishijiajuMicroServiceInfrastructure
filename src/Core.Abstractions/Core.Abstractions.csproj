@@ -3,6 +3,7 @@
   <Import Project="..\..\common.props"></Import>
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Core</RootNamespace>
     <PackageId>Baishijiaju.MicroService.Infrastructure.Abstractions</PackageId>
   </PropertyGroup>
 
@@ -11,5 +12,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.1" />
   </ItemGroup>
 </Project>

@@ -1,5 +1,6 @@
 ﻿using Core.Extensions;
 using Core.Messages;
+using System.Text;
 
 namespace Core.Session.Providers
 {
@@ -43,19 +44,37 @@ namespace Core.Session.Providers
             messageDescriptor.Headers.TryGetValue(SessionConsts.OrganizationName, out var organizationName);
             messageDescriptor.Headers.TryGetValue(SessionConsts.CurrentUserId, out var currentUserId);
             messageDescriptor.Headers.TryGetValue(SessionConsts.CurrentUserName, out var currentUserName);
-            var session = new CoreSession((city as string),
-                (companyId as string).AsGuidOrNull(),
-                TryUriDecode(companyName as string),
-                (storeId as string).AsGuidOrNull(),
-                TryUriDecode(storeName as string),
-                brokerId as string,
-                TryUriDecode(brokerName as string),
-                organizationId as string,
-                TryUriDecode(organizationName as string),
-                currentUserId as string,
-                TryUriDecode(currentUserName as string));
+            var session = new CoreSession(
+                TryConvertFromBytes(city as byte[]),
+                TryConvertFromBytes(companyId as byte[]).AsGuidOrNull(),
+                TryUriDecode(TryConvertFromBytes(companyName as byte[])),
+                TryConvertFromBytes(storeId as byte[]).AsGuidOrNull(),
+                TryUriDecode(TryConvertFromBytes(storeName as byte[])),
+                TryConvertFromBytes(brokerId as byte[]),
+                TryUriDecode(TryConvertFromBytes(brokerName as byte[])),
+                TryConvertFromBytes(organizationId as byte[]),
+                TryUriDecode(TryConvertFromBytes(organizationName as byte[])),
+                TryConvertFromBytes(currentUserId as byte[]),
+                TryUriDecode(TryConvertFromBytes(currentUserName as byte[])));
 
             return session;
+        }
+
+
+        private string TryConvertFromBytes(byte[] bytes)
+        {
+            if (bytes is null)
+            {
+                return default;
+            }
+            try
+            {
+                return Encoding.UTF8.GetString(bytes);
+            }
+            catch (System.Exception)
+            {
+                return default;
+            }
         }
 
         private string TryUriDecode(string str)
@@ -70,7 +89,7 @@ namespace Core.Session.Providers
             }
             catch (System.Exception)
             {
-                
+
             }
             return null;
         }

@@ -4,6 +4,6 @@ namespace Core.Messages
 {
     public interface IAsyncRichMessageHandler<in TMessage> : IMessageHandler where TMessage : IMessage
     {
-        Task HandleMessageAsync(TMessage message, IRichMessageDescriptor descriptor);
+        ValueTask HandleMessageAsync(TMessage message, IRichMessageDescriptor descriptor);
     }
 }

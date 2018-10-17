@@ -15,44 +15,44 @@ namespace Core.PersistentStore.Repositories
             return default;
         }
 
-        public Task<TEntity> FirstOrDefaultAsync(TKey id, CancellationToken cancellationToken = default)
+        public ValueTask<TEntity> FirstOrDefaultAsync(TKey id, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask<TEntity>(default(TEntity));
         }
 
-        public Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        public ValueTask<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask<TEntity>(default(TEntity));
         }
 
-        public Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public ValueTask<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask<TEntity>(default(TEntity));
         }
 
-        public Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public ValueTask<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask<TEntity>(default(TEntity));
         }
 
-        public Task<TEntity> DeleteAsync(TKey id, CancellationToken cancellationToken = default)
+        public ValueTask<TEntity> DeleteAsync(TKey id, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask<TEntity>(default(TEntity));
         }
 
-        public Task<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public ValueTask<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask<TEntity>(default(TEntity));
         }
 
-        public Task EnsureCollectionLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, IEnumerable<T>>> collectionSelector, CancellationToken cancellationToken = default) where T : class
+        public ValueTask EnsureCollectionLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, IEnumerable<T>>> collectionSelector, CancellationToken cancellationToken = default) where T : class
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask();
         }
 
-        public Task EnsureNavigationLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, T>> propertySelector, CancellationToken cancellationToken = default) where T : class
+        public ValueTask EnsureNavigationLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, T>> propertySelector, CancellationToken cancellationToken = default) where T : class
         {
-            return Task.FromResult(default(TEntity));
+            return new ValueTask();
         }
 
         public IQueryable<TEntity> GetAll()

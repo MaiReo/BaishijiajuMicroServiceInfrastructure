@@ -40,7 +40,7 @@ namespace Core.Messages
             _messagePublisherWrapper.Publish(wrapper);
         }
 
-        public virtual async Task PublishAsync<T>(T message) where T : IMessage
+        public virtual async ValueTask PublishAsync<T>(T message) where T : IMessage
         {
             var descriptor = _messageTopicResolver.Resolve(message);
             var headers = _coreSessionProvider.Session.ToHeaders();

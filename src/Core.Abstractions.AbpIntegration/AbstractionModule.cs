@@ -1,5 +1,6 @@
 ﻿using Abp.Dependency;
 using Castle.MicroKernel.Registration;
+using Core.BackgroundJobs;
 using Core.DependencyRegistrars;
 using Core.Messages;
 using Core.Messages.Bus;
@@ -35,6 +36,7 @@ namespace Abp.Modules
             IocManager.RegisterIfNot<HttpMessageHandler, HttpClientHandler>();
             IocManager.RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>();
             IocManager.RegisterIfNot<IServiceHelper, DefaultServiceHelper>();
+            IocManager.RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>();
             if (!IocManager.IsRegistered<HttpClient>())
             {
                 IocManager.IocContainer.Register(

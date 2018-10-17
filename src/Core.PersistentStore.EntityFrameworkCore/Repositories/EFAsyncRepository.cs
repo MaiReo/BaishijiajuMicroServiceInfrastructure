@@ -31,7 +31,7 @@ namespace Core.PersistentStore.Repositories
 
         protected virtual DbContext DbContext => _dbContextResolver.GetDbContext();
 
-        public virtual async Task<TEntity> DeleteAsync(TKey id, CancellationToken cancellationToken = default)
+        public virtual async ValueTask<TEntity> DeleteAsync(TKey id, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
             var entity = await dbContext.FindAsync<TEntity>(new object[] { id }, cancellationToken);
@@ -44,7 +44,7 @@ namespace Core.PersistentStore.Repositories
             return entity;
         }
 
-        public virtual async Task<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual async ValueTask<TEntity> DeleteAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
             dbContext.Entry(entity).State = EntityState.Deleted;
@@ -52,21 +52,21 @@ namespace Core.PersistentStore.Repositories
             return entity;
         }
 
-        public virtual async Task<TEntity> FirstOrDefaultAsync(TKey id, CancellationToken cancellationToken = default)
+        public virtual async ValueTask<TEntity> FirstOrDefaultAsync(TKey id, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
             var entity = await dbContext.FindAsync<TEntity>(new object[] { id }, cancellationToken);
             return entity;
         }
 
-        public virtual async Task<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
+        public virtual async ValueTask<TEntity> FirstOrDefaultAsync(Expression<Func<TEntity, bool>> predicate, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
             var entity = await dbContext.Set<TEntity>().FirstOrDefaultAsync(predicate, cancellationToken);
             return entity;
         }
 
-        public virtual async Task<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual async ValueTask<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
             var entry = await dbContext.AddAsync(entity, cancellationToken);
@@ -74,7 +74,7 @@ namespace Core.PersistentStore.Repositories
             return entry.Entity;
         }
 
-        public virtual async Task EnsureNavigationLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, T>> propertySelector, CancellationToken cancellationToken = default) where T : class
+        public virtual async ValueTask EnsureNavigationLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, T>> propertySelector, CancellationToken cancellationToken = default) where T : class
         {
             var propertyName = (propertySelector.Body as MemberExpression)?.Member?.Name;
             if (string.IsNullOrWhiteSpace(propertyName))
@@ -95,7 +95,7 @@ namespace Core.PersistentStore.Repositories
             await nav.LoadAsync(cancellationToken);
         }
 
-        public virtual async Task EnsureCollectionLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, IEnumerable<T>>> collectionSelector, CancellationToken cancellationToken = default) where T : class
+        public virtual async ValueTask EnsureCollectionLoadedAsync<T>(TEntity entity, Expression<Func<TEntity, IEnumerable<T>>> collectionSelector, CancellationToken cancellationToken = default) where T : class
         {
             var dbContext = DbContext;
             var entry = dbContext.Entry(entity);
@@ -120,7 +120,7 @@ namespace Core.PersistentStore.Repositories
             return predicate(DbContext.Set<TEntity>());
         }
 
-        public virtual async Task<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
+        public virtual async ValueTask<TEntity> UpdateAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
             var entry = dbContext.Entry(entity);

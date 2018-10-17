@@ -40,7 +40,7 @@ namespace Core.Messages
 
         public void Subscribe(IMessageDescriptor descriptor, Action<IMessage> handler) => Subscribe(descriptor, async message => await Task.Run(() => handler?.Invoke(message)));
 
-        public void Subscribe(IMessageDescriptor descriptor, Action<IMessage, IRichMessageDescriptor> handler) => Subscribe(descriptor, async ( message, _descriptor) => await Task.Run(() => handler?.Invoke(message, _descriptor)));
+        public void Subscribe(IMessageDescriptor descriptor, Action<IMessage, IRichMessageDescriptor> handler) => Subscribe(descriptor, async (message, _descriptor) => await Task.Run(() => handler?.Invoke(message, _descriptor)));
 
         public void Subscribe(IMessageDescriptor descriptor, Func<IMessage, Task> asyncHandler) => Subscribe(descriptor, async (msg, desc) => await asyncHandler(msg));
 
@@ -90,9 +90,9 @@ namespace Core.Messages
             }
         }
 
-        public Task PublishAsync(IMessageDescriptor descriptor, byte[] message)
+        public ValueTask PublishAsync(IMessageDescriptor descriptor, byte[] message)
         {
-            return Task.Run(() => Publish(descriptor, message));
+            return new ValueTask(Task.Run(() => Publish(descriptor, message)));
         }
 
         private IModel CreateConsumerChannel(IMessageDescriptor descriptor)
@@ -150,7 +150,7 @@ namespace Core.Messages
             return channel;
         }
 
-        private async Task ProcessMessageAsync(
+        private async ValueTask ProcessMessageAsync(
             IRichMessageDescriptor descriptor, byte[] message)
         {
             Logger.LogInformation($"ProcessMessageAsync: Exchange: {descriptor.MessageGroup}, Topic: {descriptor.MessageTopic}");

@@ -1,5 +1,5 @@
 ﻿using Consul;
-using Core.Abstractions;
+using Core.Exceptions;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Logging;
@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Core.ServiceDiscovery
@@ -15,12 +16,14 @@ namespace Core.ServiceDiscovery
 
     public class ServiceDiscoveryHelper : IServiceDiscoveryHelper
     {
-        private readonly IServerAddressesFeature serverAddressesFeature;
-        private readonly IConsulClient consulClient;
-        private readonly IServiceHelper serviceHelper;
-        private readonly IHealthCheckHelper healthCheckHelper;
+        private readonly IServerAddressesFeature _serverAddressesFeature;
+        private readonly IConsulClient _consulClient;
+        private readonly IServiceHelper _serviceHelper;
+        private readonly IHealthCheckHelper _healthCheckHelper;
+        private readonly ServiceDiscoveryConfiguration _configuration;
+        private readonly Random _random;
 
-        public bool IsRegistered { get; private set; }
+        public virtual bool IsRegistered { get; protected set; }
 
         public virtual ILogger Logger { get; protected set; }
 
@@ -29,16 +32,24 @@ namespace Core.ServiceDiscovery
             IServiceHelper serviceHelper,
             IHealthCheckHelper healthCheckHelper,
             ILogger<ServiceDiscoveryHelper> logger,
+            ServiceDiscoveryConfiguration configuration,
             IServer server)
         {
-            this.consulClient = consulClient;
-            this.serviceHelper = serviceHelper;
-            this.healthCheckHelper = healthCheckHelper;
-            this.serverAddressesFeature = server.Features.Get<IServerAddressesFeature>();
+            _random = new Random();
+            _consulClient = consulClient;
+            _serviceHelper = serviceHelper;
+            _healthCheckHelper = healthCheckHelper;
+            _configuration = configuration;
+            _serverAddressesFeature = server.Features.Get<IServerAddressesFeature>();
             Logger = (ILogger)logger ?? NullLogger.Instance;
         }
-        public virtual async Task RegisterAsync()
+        public virtual async ValueTask RegisterAsync()
         {
+            if (!_configuration.AutoRegister)
+            {
+                return;
+            }
+
             if (IsRegistered)
             {
                 throw new InvalidOperationException("Service has been already registered to consul.");
@@ -52,42 +63,46 @@ namespace Core.ServiceDiscovery
             {
                 throw new InvalidOperationException("Cannot register service to consul. Unexpected service id.");
             }
-            await consulClient.Agent.ServiceDeregister(request.ID);
-            await consulClient.Agent.ServiceRegister(request);
+            await _consulClient.Agent.ServiceDeregister(request.ID);
+            await _consulClient.Agent.ServiceRegister(request);
             IsRegistered = true;
         }
 
-        public virtual async Task<bool> DeregisterAsync()
+        public virtual async ValueTask<bool> DeregisterAsync()
         {
             if (!IsRegistered)
             {
                 return false;
             }
             var request = await BuildRegisterationRequestAsync();
-            if (string.IsNullOrWhiteSpace(request?.ID)) return false;
-            await consulClient.Agent.ServiceDeregister(request.ID);
+            if (string.IsNullOrWhiteSpace(request?.ID))
+            {
+                return false;
+            }
+
+            await _consulClient.Agent.ServiceDeregister(request.ID);
             return true;
         }
 
         private AgentServiceRegistration registration;
 
 #pragma warning disable CS1998
-        private async Task<AgentServiceRegistration> BuildRegisterationRequestAsync()
+        private async ValueTask<AgentServiceRegistration> BuildRegisterationRequestAsync()
 #pragma warning restore CS1998
         {
             if (registration != null)
             {
                 return registration;
             }
-            var serviceId = serviceHelper.GetRunningServiceId();
-            var serviceName = serviceHelper.GetRunningServiceName();
-            var serviceTags = serviceHelper.GetRunningServiceTags().ToArray();
+            var serviceId = _serviceHelper.GetRunningServiceId();
+            var serviceName = _serviceHelper.GetRunningServiceName();
+            var serviceTags = _serviceHelper.GetRunningServiceTags().ToArray();
 
             var address = "http://localhost:5000";
 
             IPAddress addr = null;
 
-            foreach (var addressString in serverAddressesFeature.Addresses)
+            foreach (var addressString in _serverAddressesFeature.Addresses)
             {
                 Logger.LogTrace($"Service discovery:Found address:{addressString}");
                 if (addr != null)
@@ -162,7 +177,7 @@ namespace Core.ServiceDiscovery
             var addressListString = ipEntry.AddressList.Aggregate(new StringBuilder(), (sb, s) => sb.Append(s).Append(","));
             Logger.LogTrace($"Service discovery:Found all addresses are : {addressListString}");
             bool isIpv6 = false;
-            
+
             var ipAddress = ipEntry.AddressList
                 .Where(ip => ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
                 .Where(ip => !IPAddress.Any.Equals(ip))
@@ -203,7 +218,7 @@ namespace Core.ServiceDiscovery
                 return null;
             }
             Logger.LogTrace($"Service discovery:The new address uri is :{addressUri}");
-            var checks = healthCheckHelper.GetHeathCheckInfo()
+            var checks = _healthCheckHelper.GetHeathCheckInfo()
                 .Select(info => new AgentServiceCheck
                 {
                     HTTP = address + info.Path,
@@ -223,5 +238,22 @@ namespace Core.ServiceDiscovery
             };
             return request;
         }
+        public string GetServiceBasePath(string serviceName, string scheme = "http://") => GetServiceBasePathAsync(serviceName, scheme).GetAwaiter().GetResult();
+
+        public virtual async ValueTask<string> GetServiceBasePathAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default)
+        {
+            var services = await _consulClient.Catalog.Service(serviceName);
+
+            var service = services.Response.ElementAtOrDefault(_random.Next(0, services.Response.Length));
+            if (service == null)
+            {
+                throw new BadGatewayException($"Cannot found service endpoint", serviceName);
+            }
+            var serviceEndPoint = $"{scheme}{service.ServiceAddress}:{service.ServicePort}";
+
+            return serviceEndPoint;
+        }
+
+
     }
 }

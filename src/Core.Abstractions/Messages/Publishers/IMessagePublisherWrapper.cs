@@ -17,6 +17,6 @@ namespace Core.Messages
         /// 发送消息
         /// </summary>
         /// <param name="messageWrapper">包装后的消息</param>
-        Task PublishAsync(IMessageWrapper messageWrapper);
+        ValueTask PublishAsync(IMessageWrapper messageWrapper);
     }
 }

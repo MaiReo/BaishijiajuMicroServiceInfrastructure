@@ -20,10 +20,10 @@ namespace Core.Abstractions.Tests
             PublishParameters.Add(messageWrapper);
         }
 
-        public Task PublishAsync(IMessageWrapper messageWrapper)
+        public ValueTask PublishAsync(IMessageWrapper messageWrapper)
         {
             PublishAsyncParameters.Add(messageWrapper);
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
         public static FakeMessagePublisherWrapper Instance => new FakeMessagePublisherWrapper();

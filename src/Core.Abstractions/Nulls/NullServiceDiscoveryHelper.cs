@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Core.ServiceDiscovery
 {
@@ -9,14 +10,24 @@ namespace Core.ServiceDiscovery
             //No Actions.
         }
 
-        public Task RegisterAsync()
+        public ValueTask RegisterAsync()
         {
-            return Task.CompletedTask;
+            return new ValueTask();
         }
 
-        public Task<bool> DeregisterAsync()
+        public ValueTask<bool> DeregisterAsync()
         {
-            return Task.FromResult(true);
+            return new ValueTask<bool>(true);
+        }
+
+        public ValueTask<string> GetServiceBasePathAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default)
+        {
+            return new ValueTask<string>(string.Concat(scheme, serviceName));
+        }
+
+        public string GetServiceBasePath(string serviceName, string scheme = "http://")
+        {
+            return string.Concat(scheme, serviceName);
         }
 
         public static NullServiceDiscoveryHelper Instance => new NullServiceDiscoveryHelper();

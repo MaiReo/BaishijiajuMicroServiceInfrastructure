@@ -7,7 +7,7 @@ namespace Core.Messages
     {
         void Publish(IMessageDescriptor descriptor, byte[] message);
 
-        Task PublishAsync(IMessageDescriptor descriptor, byte[] message);
+        ValueTask PublishAsync(IMessageDescriptor descriptor, byte[] message);
 
         void Subscribe(IMessageDescriptor descriptor, Action<IMessage> handler);
 

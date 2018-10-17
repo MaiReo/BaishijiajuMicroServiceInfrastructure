@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Autofac.Core;
+using Core.BackgroundJobs;
 using Core.Messages;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Factories;
@@ -26,6 +27,7 @@ namespace Core.Abstractions
                    .RegisterIfNot<IServiceHelper, DefaultServiceHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<HttpMessageHandler, HttpClientHandler>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<ICoreSession, NullCoreSession>(ServiceLifetime.Singleton)
                    ;
 
