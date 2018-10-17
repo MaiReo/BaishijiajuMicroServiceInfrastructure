@@ -18,10 +18,10 @@ namespace Abp.Modules
         public override void PreInitialize()
         {
             IocManager.IocContainer.Register(
-                //Component
-                // .For<IServiceDiscoveryHelper, ServiceDiscoveryHelper>()
-                // .ImplementedBy<ServiceDiscoveryHelper>()
-                //.LifestyleSingleton(),
+                Component
+                .For<IServiceDiscoveryHelper, ServiceDiscoveryHelper>()
+                .ImplementedBy<ServiceDiscoveryHelper>()
+                .LifestyleSingleton(),
                 Component
                 .For<Action<ConsulClientConfiguration>>()
                 .UsingFactoryMethod(krnl =>
