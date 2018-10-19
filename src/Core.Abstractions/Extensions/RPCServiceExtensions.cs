@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,6 +12,20 @@ namespace Core.RemoteCall
         #region Synchronous 
 
         public static RPCHttpResult<TResult> Map<TSource, TResult>(this IRPCService @this, Func<TSource, TResult> selector, string serviceName,
+            string relativePath,
+            object data = default,
+            IDictionary<string, string> headers = default,
+            HttpMethod httpMethod = default)
+            where TSource : class, new()
+        {
+            if (selector == default)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+            return Map<TSource, TResult>(@this, (source, statusCode) => selector(source), serviceName, relativePath, data, headers, httpMethod);
+        }
+
+        public static RPCHttpResult<TResult> Map<TSource, TResult>(this IRPCService @this, Func<TSource, HttpStatusCode, TResult> selector, string serviceName,
             string relativePath,
             object data = default,
             IDictionary<string, string> headers = default,
@@ -33,7 +47,7 @@ namespace Core.RemoteCall
             {
                 return mappedHttpResult;
             }
-            mappedHttpResult.Result = selector(httpResult.Result);
+            mappedHttpResult.Result = selector(httpResult.Result, httpResult.StatusCode);
             return mappedHttpResult;
         }
 
@@ -51,10 +65,24 @@ namespace Core.RemoteCall
             {
                 throw new ArgumentNullException(nameof(selector));
             }
-            return await MapAsync(@this, async (TSource source, CancellationToken _) => await selector(source), serviceName, relativePath, data, headers, httpMethod, cancellationToken);
+            return await MapAsync(@this, async (TSource source, HttpStatusCode _, CancellationToken __) => await selector(source), serviceName, relativePath, data, headers, httpMethod, cancellationToken);
         }
 
-        public static async Task<RPCHttpResult<TResult>> MapAsync<TSource, TResult>(this IRPCService @this, Func<TSource, CancellationToken, ValueTask<TResult>> selector, string serviceName,
+        public static async ValueTask<RPCHttpResult<TResult>> MapAsync<TSource, TResult>(this IRPCService @this, Func<TSource, HttpStatusCode, ValueTask<TResult>> selector, string serviceName,
+            string relativePath,
+            object data = default,
+            IDictionary<string, string> headers = default,
+            HttpMethod httpMethod = default, CancellationToken cancellationToken = default)
+            where TSource : class, new()
+        {
+            if (selector == default)
+            {
+                throw new ArgumentNullException(nameof(selector));
+            }
+            return await MapAsync(@this, async (TSource source, HttpStatusCode httpStatusCode, CancellationToken _) => await selector(source, httpStatusCode), serviceName, relativePath, data, headers, httpMethod, cancellationToken);
+        }
+
+        public static async Task<RPCHttpResult<TResult>> MapAsync<TSource, TResult>(this IRPCService @this, Func<TSource, HttpStatusCode, CancellationToken, ValueTask<TResult>> selector, string serviceName,
             string relativePath,
             object data = default,
             IDictionary<string, string> headers = default,
@@ -76,7 +104,7 @@ namespace Core.RemoteCall
             {
                 return mappedHttpResult;
             }
-            mappedHttpResult.Result = await selector(httpResult.Result, cancellationToken);
+            mappedHttpResult.Result = await selector(httpResult.Result, httpResult.StatusCode, cancellationToken);
             return mappedHttpResult;
         }
         #endregion Asynchronous 
