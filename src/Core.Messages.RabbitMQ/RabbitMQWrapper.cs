@@ -115,11 +115,35 @@ namespace Core.Messages
 
             channel.CallbackException += (sender, ea) =>
             {
-                channel.Close();
+                if (!channel.IsClosed)
+                {
+                    channel.Close();
+                }
                 channel.Dispose();
                 _channels.TryRemove(descriptor, out exists);
                 channel = CreateConsumerChannel(descriptor);
                 _channels.TryAdd(descriptor, channel);
+            };
+
+            channel.ModelShutdown += (sender, ea) =>
+            {
+                if (ea.Cause is null)
+                {
+                    return;
+                }
+                var _channel = (sender as IModel);
+                if (_channel is null)
+                {
+                    return;
+                }
+                if (ea.ReplyCode == 541 && (_channel.IsOpen == false)) //IOException
+                {
+                    Logger.LogWarning($"CreateConsumerChannel: channel { _channel.ChannelNumber} binded to Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic} shutdown caused by exception:{(ea.Cause as Exception)?.Message}, Try recreating...");
+                    _channel.Dispose();
+                    _channels.TryRemove(descriptor, out exists);
+                    channel = CreateConsumerChannel(descriptor);
+                    _channels.TryAdd(descriptor, channel);
+                }
             };
 
             channel.ExchangeDeclare(exchange: descriptor.MessageGroup,
@@ -138,6 +162,14 @@ namespace Core.Messages
 
 
             var consumer = new AsyncEventingBasicConsumer(channel);
+
+            consumer.Shutdown += async (sender, ea) => 
+            {
+                var _consumer = sender as AsyncDefaultBasicConsumer;
+                Logger.LogWarning($"CreateConsumerChannel: Consumer with tag: {_consumer.ConsumerTag} shutdown");
+                await Task.Yield();
+            };
+
             consumer.Received += async (model, ea) =>
             {
                 var richDescriptor = new RichMessageDescriptor(ea.Exchange, ea.RoutingKey, ea.Redelivered, ea.BasicProperties?.ContentEncoding, ea.BasicProperties?.ContentType, ea.BasicProperties?.MessageId, ea.BasicProperties?.Persistent, ea.BasicProperties?.Headers);
@@ -146,9 +178,12 @@ namespace Core.Messages
                 await Task.Yield();
             };
 
-            var tag = channel.BasicConsume(queue: _messageBusOptions.QueueName,
+            var consumerTag = channel.BasicConsume(queue: _messageBusOptions.QueueName,
                                  autoAck: false,
                                  consumer: consumer);
+
+            Logger.LogInformation($"CreateConsumerChannel: Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic}, Mode:{MODE}, ConsumerTag: {consumerTag}");
+
             return channel;
         }
 
@@ -168,6 +203,7 @@ namespace Core.Messages
                 return;
             }
             await func(typedMessage, descriptor);
+            await Task.Yield();
         }
     }
 }

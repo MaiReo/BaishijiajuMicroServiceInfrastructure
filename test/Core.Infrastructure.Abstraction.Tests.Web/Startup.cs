@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Autofac;
-using Autofac.Extensions.DependencyInjection;
+﻿using Autofac;
 using Core.Infrastructure.Abstraction.Tests.Web.EFCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Core.Infrastructure_Abstraction.Tests.Web
 {
@@ -23,9 +18,11 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
 
             var databaseId = Guid.NewGuid().ToString("N");
 
-            services.AddDbContext<WebDbContext>(option=>option.UseInMemoryDatabase(databaseId));
+            services.AddDbContext<WebDbContext>(option => option.UseInMemoryDatabase(databaseId));
 
-            services.AddMessageBus("localhost", 0, "/", "", "", "guest", "guest");
+            services.AddMessageBus("192.168.0.252", 5672, "/", "debug.core.abstractions", "debug.core.abstractions", "guest", "guest");
+
+            services.AddServiceDiscovery("http://192.168.0.252:8500", "debug.core.abstractions");
         }
 
         public void ConfigureContainer(ContainerBuilder builder)
@@ -40,6 +37,7 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
             app.UseDeveloperExceptionPage();
             app.UseMvcWithDefaultRoute();
             app.UseMessageBus();
+            app.UseRabbitMQWithAutoSubscribe(applicationLifetime.ApplicationStopping);
         }
     }
 }

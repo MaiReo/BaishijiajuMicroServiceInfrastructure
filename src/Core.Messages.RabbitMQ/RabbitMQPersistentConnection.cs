@@ -5,6 +5,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace Core.Messages
 {
@@ -38,6 +39,10 @@ namespace Core.Messages
 
         public IModel CreateModel()
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(_connection));
+            }
             if (!IsConnected)
             {
                 throw new InvalidOperationException("No RabbitMQ connections are available to perform this action");
@@ -68,27 +73,50 @@ namespace Core.Messages
 
         public bool TryConnect()
         {
+            //consumer and others also retry to connect
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(_connection));
+            }
+            if (IsConnected)
+            {
+                return true;
+            }
             _logger.LogInformation("RabbitMQ Client is trying to connect");
             lock (sync_root)
             {
-                _connection = _connectionFactoryResolver.Resolve().CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
-
-                if (IsConnected)
+                if (_connection != null)
                 {
-                    _connection.ConnectionShutdown += OnConnectionShutdown;
-                    _connection.CallbackException += OnCallbackException;
-                    _connection.ConnectionBlocked += OnConnectionBlocked;
-
-                    _logger.LogInformation($"RabbitMQ persistent connection acquired a connection {_connection.Endpoint.HostName} and is subscribed to failure events");
-
-                    return true;
+                    if (_connection.IsOpen)
+                    {
+                        _connection.Close();
+                    }
+                    _connection.Dispose();
+                    _connection = null;
                 }
-                else
+                var delay = 1;
+                while (!IsConnected)
                 {
-                    _logger.LogCritical("FATAL ERROR: RabbitMQ connections could not be created and opened");
-
-                    return false;
+                    try
+                    {
+                        _connection = _connectionFactoryResolver.Resolve().CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
+                    }
+                    catch (Exception e)
+                    {
+                        delay = delay << 1;
+                        _logger.LogError(e, $"RabbitMQ connections could not be created and opened, retry after {delay}s");
+                        Task.Delay(TimeSpan.FromSeconds(delay))
+                            .GetAwaiter()
+                            .GetResult();
+                    }
                 }
+
+                _connection.ConnectionShutdown += OnConnectionShutdown;
+                _connection.ConnectionBlocked += OnConnectionBlocked;
+
+                _logger.LogInformation($"RabbitMQ persistent connection acquired a connection {_connection.Endpoint.HostName} and is subscribed to failure events");
+
+                return true;
             }
         }
 
@@ -99,22 +127,11 @@ namespace Core.Messages
                 return;
             }
 
-            _logger.LogWarning("A RabbitMQ connection is shutdown. Trying to re-connect...");
+            _logger.LogWarning("A RabbitMQ connection is blocked. Trying to re-connect...");
 
             TryConnect();
         }
 
-        private void OnCallbackException(object sender, CallbackExceptionEventArgs e)
-        {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _logger.LogWarning("A RabbitMQ connection throw exception. Trying to re-connect...");
-
-            TryConnect();
-        }
 
         private void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
         {
@@ -122,7 +139,6 @@ namespace Core.Messages
             {
                 return;
             }
-
             TryConnect();
         }
     }
