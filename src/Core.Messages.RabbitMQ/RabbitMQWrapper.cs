@@ -151,13 +151,13 @@ namespace Core.Messages
 
             var queueName = _messageBusOptions.QueuePerConsumer != false ? string.Concat(_messageBusOptions.QueueName, "-", descriptor.MessageTopic) : _messageBusOptions.QueueName;
 
-            channel.QueueDeclare(queue: _messageBusOptions.QueueName,
+            channel.QueueDeclare(queue: queueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
 
-            channel.QueueBind(queue: _messageBusOptions.QueueName,
+            channel.QueueBind(queue: queueName,
                                   exchange: descriptor.MessageGroup,
                                   routingKey: descriptor.MessageTopic);
 
