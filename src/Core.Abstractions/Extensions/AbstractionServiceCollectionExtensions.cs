@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.DependencyInjection
             string hostName, int port,
             string virtualhostName,
             string exchangeName, string queueName,
-            string userName, string password, string hostServiceName = default)
+            string userName, string password, string hostServiceName = default, bool? queuePerConsumer = default)
         {
             var options = new MessageBusOptions()
             {
@@ -39,7 +39,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 UserName = userName,
                 Password = password,
                 HostServiceName = hostServiceName,
-                UseServiceDiscovery = !string.IsNullOrWhiteSpace(hostServiceName)
+                UseServiceDiscovery = !string.IsNullOrWhiteSpace(hostServiceName),
+                QueuePerConsumer = queuePerConsumer
             };
             services.TryAddSingleton<IMessageBusOptions>(options);
             return services;

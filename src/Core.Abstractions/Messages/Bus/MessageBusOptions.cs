@@ -19,5 +19,7 @@
         public bool UseServiceDiscovery { get; set; }
 
         public string HostServiceName { get; set; }
+
+        public bool? QueuePerConsumer { get; set; }
     }
 }
