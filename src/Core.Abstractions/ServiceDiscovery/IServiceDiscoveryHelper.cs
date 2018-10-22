@@ -21,5 +21,9 @@ namespace Core.ServiceDiscovery
         string GetServiceBasePath(string serviceName, string scheme = "http://");
 
         ValueTask<string> GetServiceBasePathAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default);
+
+        (string Address, int Port) GetServiceAddress(string serviceName);
+
+        ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default);
     }
 }

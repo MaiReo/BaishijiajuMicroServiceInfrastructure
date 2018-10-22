@@ -1,5 +1,4 @@
-﻿using Core.Messages.Bus;
-using Core.ServiceDiscovery;
+﻿using Core.ServiceDiscovery;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using RabbitMQ.Client;
@@ -11,7 +10,7 @@ namespace Core.Messages
 {
     public class RabbitMQPersistentConnection : IRabbitMQPersistentConnection
     {
-        private readonly IConnectionFactory _connectionFactory;
+        private readonly IConnectionFactoryResolver _connectionFactoryResolver;
         private readonly ServiceDiscoveryConfiguration _serviceDiscoveryConfiguration;
         private readonly ILogger _logger;
         private IConnection _connection;
@@ -19,11 +18,12 @@ namespace Core.Messages
 
         private readonly object sync_root = new object();
 
-        public RabbitMQPersistentConnection(IConnectionFactory connectionFactory,
+        public RabbitMQPersistentConnection(
+            IConnectionFactoryResolver connectionFactoryResolver,
             ServiceDiscoveryConfiguration serviceDiscoveryConfiguration,
             ILogger<RabbitMQPersistentConnection> logger)
         {
-            _connectionFactory = connectionFactory ?? throw new ArgumentNullException(nameof(connectionFactory));
+            _connectionFactoryResolver = connectionFactoryResolver ?? throw new ArgumentNullException(nameof(connectionFactoryResolver));
             _serviceDiscoveryConfiguration = serviceDiscoveryConfiguration;
             _logger = (ILogger)logger ?? NullLogger.Instance;
         }
@@ -71,7 +71,7 @@ namespace Core.Messages
             _logger.LogInformation("RabbitMQ Client is trying to connect");
             lock (sync_root)
             {
-                _connection = _connectionFactory.CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
+                _connection = _connectionFactoryResolver.Resolve().CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
 
                 if (IsConnected)
                 {

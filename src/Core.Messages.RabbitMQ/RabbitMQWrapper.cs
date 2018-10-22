@@ -136,15 +136,17 @@ namespace Core.Messages
                                   exchange: descriptor.MessageGroup,
                                   routingKey: descriptor.MessageTopic);
 
-            var consumer = new EventingBasicConsumer(channel);
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
             consumer.Received += async (model, ea) =>
             {
                 var richDescriptor = new RichMessageDescriptor(ea.Exchange, ea.RoutingKey, ea.Redelivered, ea.BasicProperties?.ContentEncoding, ea.BasicProperties?.ContentType, ea.BasicProperties?.MessageId, ea.BasicProperties?.Persistent, ea.BasicProperties?.Headers);
                 await ProcessMessageAsync(richDescriptor, ea.Body);
                 channel.BasicAck(ea.DeliveryTag, multiple: false);
+                await Task.Yield();
             };
 
-            channel.BasicConsume(queue: _messageBusOptions.QueueName,
+            var tag = channel.BasicConsume(queue: _messageBusOptions.QueueName,
                                  autoAck: false,
                                  consumer: consumer);
             return channel;

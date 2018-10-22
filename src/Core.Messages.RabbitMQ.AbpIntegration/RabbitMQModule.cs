@@ -1,7 +1,5 @@
 ﻿using Castle.MicroKernel.Registration;
-using RabbitMQ.Client;
 using Core.Messages;
-using Core.Messages.Bus;
 
 namespace Abp.Modules
 {
@@ -24,19 +22,9 @@ namespace Abp.Modules
             IocManager.RegisterAssemblyByConvention(typeof(RabbitMQModule).Assembly);
 
             IocManager.IocContainer.Register(
-                Component.For<IConnectionFactory, ConnectionFactory>()
-                .UsingFactoryMethod((krnl) =>
-                {
-                    var options = krnl.Resolve<IMessageBusOptions>();
-                    var factory = new ConnectionFactory
-                    {
-                        UserName = options.UserName,
-                        Password = options.Password,
-                        VirtualHost = options.VirtualHost,
-                        HostName = options.HostName
-                    };
-                    return factory;
-                })
+                Component
+                .For<IConnectionFactoryResolver, ConnectionFactoryResolver>()
+                .ImplementedBy<ConnectionFactoryResolver>()
                 .LifestyleSingleton()
                 );
         }

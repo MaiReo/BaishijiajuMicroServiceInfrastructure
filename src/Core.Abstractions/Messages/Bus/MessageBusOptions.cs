@@ -13,5 +13,11 @@
         public string ExchangeName { get; set; }
 
         public string QueueName { get; set; }
+
+        public int Port { get; set; }
+
+        public bool UseServiceDiscovery { get; set; }
+
+        public string HostServiceName { get; set; }
     }
 }

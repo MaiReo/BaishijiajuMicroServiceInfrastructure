@@ -25,15 +25,7 @@ namespace Core.Infrastructure_Abstraction.Tests.Web
 
             services.AddDbContext<WebDbContext>(option=>option.UseInMemoryDatabase(databaseId));
 
-            services.AddMessageBus(o => 
-            {
-                o.HostName = "localhost";
-                o.VirtualHost = "/";
-                o.ExchangeName = "";
-                o.QueueName = "";
-                o.UserName = "guest";
-                o.Password = "guest";
-            });
+            services.AddMessageBus("localhost", 0, "/", "", "", "guest", "guest");
         }
 
         public void ConfigureContainer(ContainerBuilder builder)

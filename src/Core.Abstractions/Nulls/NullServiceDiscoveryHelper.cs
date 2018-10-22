@@ -30,6 +30,16 @@ namespace Core.ServiceDiscovery
             return string.Concat(scheme, serviceName);
         }
 
+        public (string Address, int Port) GetServiceAddress(string serviceName)
+        {
+            return (default, default);
+        }
+
+        public ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default)
+        {
+            return new ValueTask<(string Address, int Port)>((default, default));
+        }
+
         public static NullServiceDiscoveryHelper Instance => new NullServiceDiscoveryHelper();
 
         public bool IsRegistered => false;
