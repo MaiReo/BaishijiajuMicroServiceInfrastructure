@@ -179,7 +179,7 @@ namespace Core.Messages
                 await Task.Yield();
             };
 
-            var consumerTag = channel.BasicConsume(queue: _messageBusOptions.QueueName,
+            var consumerTag = channel.BasicConsume(queue: queueName,
                                  autoAck: false,
                                  consumer: consumer);
 
