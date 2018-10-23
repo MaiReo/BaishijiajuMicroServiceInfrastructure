@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Core.Abstractions.AbpIntegration\Core.Abstractions.AbpIntegration.csproj" />
     <ProjectReference Include="..\Core.ServiceDiscovery.Consul\Core.ServiceDiscovery.Consul.csproj" />
   </ItemGroup>
   <ItemGroup>

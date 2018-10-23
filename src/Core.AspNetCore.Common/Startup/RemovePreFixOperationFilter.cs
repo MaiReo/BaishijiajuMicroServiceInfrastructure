@@ -6,22 +6,24 @@ namespace Core.Web.Startup
 {
     public class RemovePreFixOperationFilter : IOperationFilter
     {
+        protected virtual string Prefix { get; set; }
+
         public void Apply(Operation operation, OperationFilterContext context)
         {
-            var prefix = string.Empty;
+            var prefix = Prefix ?? string.Empty;
             var appServiceName = (context.ApiDescription.ActionDescriptor as ControllerActionDescriptor)?.ControllerName ?? string.Empty;
-            prefix = appServiceName;
-            if (operation.OperationId.StartsWith( prefix ))
+            prefix += appServiceName;
+            if (operation.OperationId.StartsWith(prefix))
             {
-                operation.OperationId = operation.OperationId.Remove( 0, prefix.Length );
+                operation.OperationId = operation.OperationId.Remove(0, prefix.Length);
             }
-            if (operation.OperationId.EndsWith( "Post" ))
+            if (operation.OperationId.EndsWith("Post"))
             {
-                operation.OperationId = operation.OperationId.Remove( operation.OperationId.LastIndexOf( "Post" ) );
+                operation.OperationId = operation.OperationId.Remove(operation.OperationId.LastIndexOf("Post"));
             }
-            if (operation.OperationId.EndsWith( "Get" ))
+            if (operation.OperationId.EndsWith("Get"))
             {
-                operation.OperationId = operation.OperationId.Remove( operation.OperationId.LastIndexOf( "Get" ) );
+                operation.OperationId = operation.OperationId.Remove(operation.OperationId.LastIndexOf("Get"));
             }
             if (operation.OperationId.EndsWith("Put"))
             {

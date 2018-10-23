@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core.Abstractions.AbpIntegration\Core.Abstractions.AbpIntegration.csproj" />
+    <ProjectReference Include="..\Core.AspNetCore.Common\Core.AspNetCore.Common.csproj" />
     <ProjectReference Include="..\Core.Messages.RabbitMQ.AbpIntegration\Core.Messages.RabbitMQ.AbpIntegration.csproj" />
     <ProjectReference Include="..\Core.ServiceDiscovery.Consul.AbpIntegration\Core.ServiceDiscovery.Consul.AbpIntegration.csproj" />
   </ItemGroup>

@@ -10,7 +10,7 @@ using System;
 
 namespace Abp.Modules
 {
-    [DependsOn(typeof(AbpAspNetCoreModule))]
+    [DependsOn(typeof(AbstractionModule))]
     public class ConsulModule : AbpModule
     {
         private IServiceDiscoveryHelper consulHelper;
@@ -48,7 +48,6 @@ namespace Abp.Modules
 
         public override void PostInitialize()
         {
-            IocManager.RegisterIfNot<IHealthCheckHelper, AspNetHealthCheckHelper>(DependencyLifeStyle.Singleton);
             consulHelper = IocManager.Resolve<IServiceDiscoveryHelper>();
             AsyncHelper.RunSync(async () => await consulHelper.RegisterAsync());
         }
