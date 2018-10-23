@@ -23,14 +23,13 @@ namespace Core.Messages.Bus
                 Component
                 .For<IMessageHandlerFactoryStore, MessageHandlerFactoryStore>()
                 .ImplementedBy<MessageHandlerFactoryStore>()
-                .LifestyleSingleton()
-            );
-            container.Register(
-                Component
+                .LifestyleSingleton(),
+                 Component
                 .For<IMessageBus, MessageBus>()
                 .ImplementedBy<MessageBus>()
                 .LifestyleTransient()
             );
+            
             _messageHandlerFactoryStore = container.Resolve<IMessageHandlerFactoryStore>();
             container.Kernel.ComponentRegistered += RegisterMessageHandler;
         }

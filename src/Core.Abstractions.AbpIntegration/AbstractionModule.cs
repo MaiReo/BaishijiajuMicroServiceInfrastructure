@@ -18,7 +18,7 @@ namespace Abp.Modules
         {
             IocManager.AddConventionalRegistrar(new MessageHandlerConventionalRegistrar());
             IocManager.IocContainer.Install(new MessageBusInstaller(IocManager));
-
+            
         }
 
         public override void Initialize()
@@ -33,12 +33,13 @@ namespace Abp.Modules
             IocManager.RegisterIfNot<IMessageDescriptorResolver, MessageDescriptorResolver>();
             IocManager.RegisterIfNot<IMessageConverter, DefaultMessageConverter>();
             IocManager.RegisterIfNot<IMessageScopeCreator, NullMessageScopeCreator>();
-            IocManager.RegisterIfNot<IMessageBus, MessageBus>();
             IocManager.RegisterIfNot<HttpMessageHandler, HttpClientHandler>();
             IocManager.RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>();
             IocManager.RegisterIfNot<IServiceHelper, DefaultServiceHelper>();
             IocManager.RegisterIfNot<IRPCService, RPCService>();
             IocManager.RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>();
+            IocManager.RegisterIfNot<IServiceHelper, NullServiceHelper>();
+            IocManager.RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>();
             if (!IocManager.IsRegistered<HttpClient>())
             {
                 IocManager.IocContainer.Register(

@@ -31,6 +31,8 @@ namespace Core.Abstractions
                    .RegisterIfNot<IRPCService, RPCService>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<ICoreSession, NullCoreSession>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IServiceHelper, NullServiceHelper>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>(ServiceLifetime.Singleton)
                    ;
 
             builder.Register(c => c.Resolve<IHttpClientWrapper>().HttpClient)

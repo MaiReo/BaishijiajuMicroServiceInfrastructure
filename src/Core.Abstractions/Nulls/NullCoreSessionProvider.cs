@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace Core.Session
+﻿namespace Core.Session
 {
     public class NullCoreSessionProvider : ICoreSessionProvider
     {
-        public ICoreSession Session => null;
+        public ICoreSession Session => NullCoreSession.Instance;
+        public static NullCoreSessionProvider Instance => new NullCoreSessionProvider();
+
     }
 }
