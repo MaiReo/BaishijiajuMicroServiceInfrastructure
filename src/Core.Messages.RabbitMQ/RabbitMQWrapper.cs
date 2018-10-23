@@ -98,16 +98,15 @@ namespace Core.Messages
         private IModel CreateConsumerChannel(IMessageDescriptor descriptor)
         {
             const string MODE = "topic";
-            Logger.LogInformation($"CreateConsumerChannel: Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic}, Mode:{MODE}");
             if (_channels.TryGetValue(descriptor, out var exists))
             {
-                Logger.LogInformation($"CreateConsumerChannel: Channel is already created");
+                Logger.LogWarning($"CreateConsumerChannel: Channel is already created");
                 return exists;
             }
 
             if (!_persistentConnection.IsConnected)
             {
-                Logger.LogInformation($"CreateConsumerChannel: Try connecting...");
+                Logger.LogWarning($"CreateConsumerChannel: Try connecting...");
                 _persistentConnection.TryConnect();
             }
 
@@ -115,38 +114,77 @@ namespace Core.Messages
 
             channel.CallbackException += (sender, ea) =>
             {
-                channel.Close();
+                if (!channel.IsClosed)
+                {
+                    channel.Close();
+                }
                 channel.Dispose();
                 _channels.TryRemove(descriptor, out exists);
                 channel = CreateConsumerChannel(descriptor);
                 _channels.TryAdd(descriptor, channel);
             };
 
+            channel.ModelShutdown += (sender, ea) =>
+            {
+                if (ea.Cause is null)
+                {
+                    return;
+                }
+                var _channel = (sender as IModel);
+                if (_channel is null)
+                {
+                    return;
+                }
+                if (ea.ReplyCode == 541 && (_channel.IsOpen == false)) //IOException
+                {
+                    Logger.LogWarning($"CreateConsumerChannel: channel { _channel.ChannelNumber} binded to Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic} shutdown caused by exception:{(ea.Cause as Exception)?.Message}, Try recreating...");
+                    _channel.Dispose();
+                    _channels.TryRemove(descriptor, out exists);
+                    channel = CreateConsumerChannel(descriptor);
+                    _channels.TryAdd(descriptor, channel);
+                }
+            };
+
             channel.ExchangeDeclare(exchange: descriptor.MessageGroup,
                                  durable: true,
                                  type: MODE);
 
-            channel.QueueDeclare(queue: _messageBusOptions.QueueName,
+            var queueName = _messageBusOptions.QueuePerConsumer != false ? string.Concat(_messageBusOptions.QueueName, "-", descriptor.MessageTopic) : _messageBusOptions.QueueName;
+
+            channel.QueueDeclare(queue: queueName,
                                  durable: true,
                                  exclusive: false,
                                  autoDelete: false,
                                  arguments: null);
 
-            channel.QueueBind(queue: _messageBusOptions.QueueName,
+            channel.QueueBind(queue: queueName,
                                   exchange: descriptor.MessageGroup,
                                   routingKey: descriptor.MessageTopic);
 
-            var consumer = new EventingBasicConsumer(channel);
+
+            var consumer = new AsyncEventingBasicConsumer(channel);
+
+            consumer.Shutdown += async (sender, ea) =>
+            {
+                var _consumer = sender as AsyncDefaultBasicConsumer;
+                Logger.LogWarning($"CreateConsumerChannel: Consumer with tag: {_consumer.ConsumerTag} shutdown");
+                await Task.Yield();
+            };
+
             consumer.Received += async (model, ea) =>
             {
                 var richDescriptor = new RichMessageDescriptor(ea.Exchange, ea.RoutingKey, ea.Redelivered, ea.BasicProperties?.ContentEncoding, ea.BasicProperties?.ContentType, ea.BasicProperties?.MessageId, ea.BasicProperties?.Persistent, ea.BasicProperties?.Headers);
                 await ProcessMessageAsync(richDescriptor, ea.Body);
                 channel.BasicAck(ea.DeliveryTag, multiple: false);
+                await Task.Yield();
             };
 
-            channel.BasicConsume(queue: _messageBusOptions.QueueName,
+            var consumerTag = channel.BasicConsume(queue: queueName,
                                  autoAck: false,
                                  consumer: consumer);
+
+            Logger.LogInformation($"CreateConsumerChannel: Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic}, Mode:{MODE}, Queue: {queueName}, ConsumerTag: {consumerTag}");
+
             return channel;
         }
 
@@ -156,16 +194,17 @@ namespace Core.Messages
             Logger.LogInformation($"ProcessMessageAsync: Exchange: {descriptor.MessageGroup}, Topic: {descriptor.MessageTopic}");
             if (!_subscribers.TryGetValue(descriptor, out var func))
             {
-                Logger.LogInformation($"ProcessMessageAsync: Subscriber not exists");
+                Logger.LogWarning($"ProcessMessageAsync: Subscriber not exists");
                 return;
             }
             var typedMessage = _messageConverter.Deserialize(descriptor, message);
             if (typedMessage == null)
             {
-                Logger.LogInformation($"ProcessMessageAsync: Cannot convert message to a typed message");
+                Logger.LogWarning($"ProcessMessageAsync: Cannot convert message to a typed message");
                 return;
             }
             await func(typedMessage, descriptor);
+            await Task.Yield();
         }
     }
 }

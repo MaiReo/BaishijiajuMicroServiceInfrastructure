@@ -6,6 +6,7 @@ using System;
 
 namespace Core.Abstraction.Tests.Web.Messages
 {
+    [MessageDescription(default, "debug.core.abstractions")]
     public class WebTestMessage : IMessage
     {
         public string TestMessage { get; set; }

@@ -242,6 +242,15 @@ namespace Core.ServiceDiscovery
 
         public virtual async ValueTask<string> GetServiceBasePathAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default)
         {
+            var (address, port) = await GetServiceAddressAsync(serviceName, cancellationToken);
+            var serviceEndPoint = $"{scheme}{address}:{port}";
+            return serviceEndPoint;
+        }
+
+        public (string Address, int Port) GetServiceAddress(string serviceName) => GetServiceAddressAsync(serviceName).GetAwaiter().GetResult();
+
+        public async ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default)
+        {
             var services = await _consulClient.Catalog.Service(serviceName);
 
             var service = services.Response.ElementAtOrDefault(_random.Next(0, services.Response.Length));
@@ -249,11 +258,7 @@ namespace Core.ServiceDiscovery
             {
                 throw new BadGatewayException($"Cannot found service endpoint", serviceName);
             }
-            var serviceEndPoint = $"{scheme}{service.ServiceAddress}:{service.ServicePort}";
-
-            return serviceEndPoint;
+            return (service.ServiceAddress, service.ServicePort);
         }
-
-
     }
 }

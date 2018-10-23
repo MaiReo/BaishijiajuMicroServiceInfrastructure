@@ -47,15 +47,7 @@ namespace Core.TestBase
             var startupAssembly = typeof(TStartup).Assembly;
             services.AddDistributedMemoryCache();
             services.RegisterRequiredServices(startupAssembly);
-            services.AddMessageBus(o =>
-            {
-                o.ExchangeName = TestConsts.MESSAGE_BUS_EXCHANGE;
-                o.HostName = TestConsts.MESSAGE_BUS_HOST;
-                o.Password = TestConsts.MESSAGE_BUS_PWD;
-                o.QueueName = TestConsts.MESSAGE_BUS_QUEUE;
-                o.UserName = TestConsts.MESSAGE_BUS_USER;
-                o.VirtualHost = TestConsts.MESSAGE_BUS_VHOST;
-            });
+            services.AddMessageBus(TestConsts.MESSAGE_BUS_HOST, 0, TestConsts.MESSAGE_BUS_VHOST, TestConsts.MESSAGE_BUS_EXCHANGE, TestConsts.MESSAGE_BUS_QUEUE, TestConsts.MESSAGE_BUS_USER, TestConsts.MESSAGE_BUS_PWD);
             services.AddServiceDiscovery(o => o.Address = ServiceDiscoveryConfiguration.DEFAULT_ADDRESS);
 
             var containerBuilder = new ContainerBuilder();
@@ -77,6 +69,19 @@ namespace Core.TestBase
                .SingleInstance();
 
             containerBuilder
+               .RegisterType<NullMessageSubscriber>()
+               .AsSelf()
+               .As<IMessageSubscriber>()
+               .SingleInstance();
+
+
+            containerBuilder
+                .RegisterType<FakeMessagePublisherWrapper>()
+                .As<IMessagePublisherWrapper>()
+                .AsSelf()
+                .SingleInstance();
+
+            containerBuilder
                 .RegisterType<UnitTestCoreSessionProvider>()
                 .AsSelf()
                 .As<ICoreSessionProvider>()
@@ -84,12 +89,6 @@ namespace Core.TestBase
 
             containerBuilder
                 .RegisterType<UnitTestCurrentUser>()
-                .AsSelf()
-                .SingleInstance();
-
-            containerBuilder
-                .RegisterType<FakeMessagePublisherWrapper>()
-                .As<IMessagePublisherWrapper>()
                 .AsSelf()
                 .SingleInstance();
 
