@@ -5,13 +5,14 @@ using System;
 
 namespace Core.Messages
 {
-    public class ConnectionFactoryResolver : IConnectionFactoryResolver
+    public class ConnectionFactoryResolver : IConnectionFactoryResolver, IDisposable
     {
         private readonly IMessageBusOptions _messageBusOptions;
         private readonly IServiceDiscoveryHelper _serviceDiscoveryHelper;
         private readonly Lazy<IConnectionFactory> _connectionFactory_singleton_lazy;
 
-        private readonly object sync_root = new object();
+        private readonly static object sync_root = new object();
+        private bool _disposed;
 
         public ConnectionFactoryResolver(
             IMessageBusOptions messageBusOptions,
@@ -27,7 +28,7 @@ namespace Core.Messages
                     Password = _messageBusOptions.Password,
                     VirtualHost = _messageBusOptions.VirtualHost,
                     HostName = _messageBusOptions.HostName,
-                    DispatchConsumersAsync = true,
+                    DispatchConsumersAsync = true
                 };
                 if (_messageBusOptions.Port > 0 && _messageBusOptions.Port < 65536)
                 {
@@ -38,6 +39,10 @@ namespace Core.Messages
         }
         public IConnectionFactory Resolve()
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(_connectionFactory_singleton_lazy));
+            }
             if (!_messageBusOptions.UseServiceDiscovery || string.IsNullOrWhiteSpace(_messageBusOptions.HostServiceName))
             {
                 return _connectionFactory_singleton_lazy.Value;
@@ -55,6 +60,11 @@ namespace Core.Messages
                     DispatchConsumersAsync = true,
                 };
             }
+        }
+
+        public void Dispose()
+        {
+            _disposed = true;
         }
     }
 }

@@ -57,5 +57,13 @@ namespace Core.Infrastructure.Abstraction.Tests.Web.Controllers
             });
         }
 
+        public async ValueTask<IActionResult> DebugMessage([FromQuery]string message, [FromServices]IMessageBus messageBus)
+        {
+            var msg = new WebTestMessage() { TestMessage = message };
+            await messageBus.PublishAsync(msg);
+            return Json(new { message });
+        }
+
+
     }
 }
