@@ -1,15 +1,13 @@
-﻿using Core.Abstractions.Dependency;
-using Core.ServiceDiscovery;
-using Microsoft.AspNetCore.Mvc.ApiExplorer;
+﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Core.Web.Startup
+namespace Core.ServiceDiscovery
 {
     /// <summary>
     /// 
     /// </summary>
-    public class HealthCheckHelper : AspNetHealthCheckHelper, IHealthCheckHelper, ILifestyleSingleton
+    public class HealthCheckHelper : AspNetHealthCheckHelper, IHealthCheckHelper
     {
         private readonly IApiDescriptionGroupCollectionProvider apiExplorer;
         /// <summary>

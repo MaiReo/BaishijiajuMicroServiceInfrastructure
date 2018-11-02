@@ -1,14 +1,11 @@
-﻿using Core.Abstractions.Dependency;
-using Core.Extensions;
-using Core.Session;
+﻿using Core.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using System;
 using System.Linq;
 using System.Net;
-using System.Text;
 
-namespace Core.Web.Startup
+namespace Core.Session
 {
     public class HttpContextCoreSession : ICoreSession
     {

@@ -1,11 +1,8 @@
-﻿using Core.Abstractions.Dependency;
-using Core.ServiceDiscovery;
-using Microsoft.AspNetCore.Hosting;
-using System;
+﻿using Microsoft.AspNetCore.Hosting;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Core.Web.Startup
+namespace Core.ServiceDiscovery
 {
     /// <summary>
     /// 

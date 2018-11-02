@@ -1,13 +1,8 @@
-﻿using System;
-using System.Linq;
-using Core.Abstractions.Dependency;
-using Core.Session;
-using Microsoft.AspNetCore.Http;
-using Core.Extensions;
+﻿using Microsoft.AspNetCore.Http;
 
-namespace Core.Web.Startup
+namespace Core.Session
 {
-    public class HttpContextCoreSessionProvider : ICoreSessionProvider, ILifestyleSingleton
+    public class HttpContextCoreSessionProvider : ICoreSessionProvider
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
