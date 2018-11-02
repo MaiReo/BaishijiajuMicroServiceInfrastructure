@@ -13,10 +13,10 @@ namespace Autofac
         /// </summary>
         public static void AddCoreModules(this ContainerBuilder builder)
         {
-            builder.RegisterModule<AbstractionModule>();
+            builder.RegisterModule<EntityFrameworkCoreModule>();
             builder.RegisterModule<RabbitMQModule>();
             builder.RegisterModule<ConsulModule>();
-            builder.RegisterModule<EntityFrameworkCoreModule>();
+            builder.RegisterModule<AbstractionModule>();
             builder.RegisterAssemblyByConvention(typeof(AutofacContainerBuilderExtensions).Assembly);
 
             builder.RegisterType<HttpContextCoreSessionProvider>()
@@ -34,7 +34,7 @@ namespace Autofac
 
             builder.RegisterType<HealthCheckHelper>()
                 .AsSelf()
-                .As<IServiceHelper>()
+                .As<IHealthCheckHelper>()
                 .SingleInstance();
         }
     }

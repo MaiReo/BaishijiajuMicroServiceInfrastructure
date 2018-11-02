@@ -13,7 +13,7 @@ namespace Core.Messages
     public class RabbitMQWrapper : IRabbitMQWrapper
     {
         private readonly ConcurrentDictionary<IMessageDescriptor, IModel> _channels;
-        private ConcurrentDictionary<IMessageDescriptor, Func<IMessage, IRichMessageDescriptor, Task>> _subscribers;
+        private ConcurrentDictionary<IMessageDescriptor, Func<IMessage, IRichMessageDescriptor, ValueTask>> _subscribers;
         private readonly IRabbitMQPersistentConnection _persistentConnection;
         private readonly IMessageBusOptions _messageBusOptions;
         private readonly IMessageConverter _messageConverter;
@@ -23,7 +23,7 @@ namespace Core.Messages
         protected RabbitMQWrapper()
         {
             _channels = new ConcurrentDictionary<IMessageDescriptor, IModel>(MessageDescriptorEqualityComparer.Instance);
-            _subscribers = new ConcurrentDictionary<IMessageDescriptor, Func<IMessage, IRichMessageDescriptor, Task>>(MessageDescriptorEqualityComparer.Instance);
+            _subscribers = new ConcurrentDictionary<IMessageDescriptor, Func<IMessage, IRichMessageDescriptor, ValueTask>>(MessageDescriptorEqualityComparer.Instance);
         }
 
         public RabbitMQWrapper(
@@ -38,13 +38,21 @@ namespace Core.Messages
             Logger = (ILogger)logger ?? NullLogger.Instance;
         }
 
-        public void Subscribe(IMessageDescriptor descriptor, Action<IMessage> handler) => Subscribe(descriptor, async message => await Task.Run(() => handler?.Invoke(message)));
+        public void Subscribe(IMessageDescriptor descriptor, Action<IMessage> handler) => Subscribe(descriptor, message =>
+        {
+            handler?.Invoke(message);
+            return new ValueTask();
+        });
 
-        public void Subscribe(IMessageDescriptor descriptor, Action<IMessage, IRichMessageDescriptor> handler) => Subscribe(descriptor, async (message, _descriptor) => await Task.Run(() => handler?.Invoke(message, _descriptor)));
+        public void Subscribe(IMessageDescriptor descriptor, Action<IMessage, IRichMessageDescriptor> handler) => Subscribe(descriptor, (message, _descriptor) =>
+        {
+            handler?.Invoke(message, _descriptor);
+            return new ValueTask();
+        });
 
-        public void Subscribe(IMessageDescriptor descriptor, Func<IMessage, Task> asyncHandler) => Subscribe(descriptor, async (msg, desc) => await asyncHandler(msg));
+        public void Subscribe(IMessageDescriptor descriptor, Func<IMessage, ValueTask> asyncHandler) => Subscribe(descriptor, async (msg, desc) => await asyncHandler(msg));
 
-        public void Subscribe(IMessageDescriptor descriptor, Func<IMessage, IRichMessageDescriptor, Task> asyncHandler)
+        public void Subscribe(IMessageDescriptor descriptor, Func<IMessage, IRichMessageDescriptor, ValueTask> asyncHandler)
         {
             Logger.LogInformation($"Subscribing: Exchange: {descriptor.MessageGroup}, Topic: {descriptor.MessageTopic}");
             _subscribers.AddOrUpdate(descriptor, asyncHandler, (desc, oldValue) => asyncHandler);
@@ -104,52 +112,46 @@ namespace Core.Messages
                 return exists;
             }
 
-            if (!_persistentConnection.IsConnected)
-            {
-                Logger.LogWarning($"CreateConsumerChannel: Try connecting...");
-                _persistentConnection.TryConnect();
-            }
-
             var channel = _persistentConnection.CreateModel();
 
-            channel.CallbackException += (sender, ea) =>
+            void onModelShutdown(object sender, ShutdownEventArgs eventArgs)
             {
-                if (!channel.IsClosed)
+                var model = sender as IModel;
+                
+                switch (eventArgs.Initiator)
                 {
-                    channel.Close();
+                    case ShutdownInitiator.Application:
+                        if (eventArgs.ReplyCode == 200)
+                        {
+                            model.ModelShutdown -= onModelShutdown;
+                            Logger.LogInformation($"CreateConsumerChannel: channel { model.ChannelNumber} shutdown by app.");
+                            _channels.TryRemove(descriptor, out var _);
+                            return;
+                        }
+                        break;
+                    case ShutdownInitiator.Library:
+                        if (eventArgs.ReplyCode == 541) //Unhandled Exception
+                        {
+                            var shutdownReason = (eventArgs.Cause as Exception).Message;
+                            Logger.LogWarning($"CreateConsumerChannel: channel { model.ChannelNumber} shutdown, Initiator: {eventArgs.Initiator}, caused by :{(eventArgs.Cause as Exception).Message}");
+                        }
+                        break;
+                    case ShutdownInitiator.Peer:
+                        break;
+                    default:
+                        break;
                 }
-                channel.Dispose();
-                _channels.TryRemove(descriptor, out exists);
-                channel = CreateConsumerChannel(descriptor);
-                _channels.TryAdd(descriptor, channel);
-            };
+            }
 
-            channel.ModelShutdown += (sender, ea) =>
-            {
-                if (ea.Cause is null)
-                {
-                    return;
-                }
-                var _channel = (sender as IModel);
-                if (_channel is null)
-                {
-                    return;
-                }
-                if (ea.ReplyCode == 541 && (_channel.IsOpen == false)) //IOException
-                {
-                    Logger.LogWarning($"CreateConsumerChannel: channel { _channel.ChannelNumber} binded to Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic} shutdown caused by exception:{(ea.Cause as Exception)?.Message}, Try recreating...");
-                    _channel.Dispose();
-                    _channels.TryRemove(descriptor, out exists);
-                    channel = CreateConsumerChannel(descriptor);
-                    _channels.TryAdd(descriptor, channel);
-                }
-            };
+            channel.ModelShutdown += onModelShutdown;
 
             channel.ExchangeDeclare(exchange: descriptor.MessageGroup,
                                  durable: true,
                                  type: MODE);
 
-            var queueName = _messageBusOptions.QueuePerConsumer != false ? string.Concat(_messageBusOptions.QueueName, "-", descriptor.MessageTopic) : _messageBusOptions.QueueName;
+            var queueName = _messageBusOptions.QueuePerConsumer != false
+                            ? string.Concat(_messageBusOptions.QueueName, "-", descriptor.MessageTopic)
+                            : _messageBusOptions.QueueName;
 
             channel.QueueDeclare(queue: queueName,
                                  durable: true,
@@ -164,28 +166,67 @@ namespace Core.Messages
 
             var consumer = new AsyncEventingBasicConsumer(channel);
 
-            consumer.Shutdown += async (sender, ea) =>
-            {
-                var _consumer = sender as AsyncDefaultBasicConsumer;
-                Logger.LogWarning($"CreateConsumerChannel: Consumer with tag: {_consumer.ConsumerTag} shutdown");
-                await Task.Yield();
-            };
+            consumer.Shutdown += ConsumerShutdown;
 
-            consumer.Received += async (model, ea) =>
-            {
-                var richDescriptor = new RichMessageDescriptor(ea.Exchange, ea.RoutingKey, ea.Redelivered, ea.BasicProperties?.ContentEncoding, ea.BasicProperties?.ContentType, ea.BasicProperties?.MessageId, ea.BasicProperties?.Persistent, ea.BasicProperties?.Headers);
-                await ProcessMessageAsync(richDescriptor, ea.Body);
-                channel.BasicAck(ea.DeliveryTag, multiple: false);
-                await Task.Yield();
-            };
+            consumer.Received += ConsumerMessageReceived;
 
             var consumerTag = channel.BasicConsume(queue: queueName,
                                  autoAck: false,
                                  consumer: consumer);
 
             Logger.LogInformation($"CreateConsumerChannel: Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic}, Mode:{MODE}, Queue: {queueName}, ConsumerTag: {consumerTag}");
-
+            _channels.TryAdd(descriptor, channel);
             return channel;
+        }
+
+        private Task ConsumerShutdown(object sender, ShutdownEventArgs eventArgs)
+        {
+            var consumer = sender as AsyncEventingBasicConsumer;
+            switch (eventArgs.Initiator)
+            {
+                case ShutdownInitiator.Application:
+                    if (eventArgs.ReplyCode == 200)
+                    {
+                        consumer.Shutdown -= ConsumerShutdown;
+                        consumer.Received -= ConsumerMessageReceived;
+                        Logger.LogInformation($"Consumer {consumer.ConsumerTag} shutdown by app.");
+                        return Task.CompletedTask;
+                    }
+                    break;
+                case ShutdownInitiator.Library:
+                    if (eventArgs.ReplyCode == 541) //Unhandled Exception
+                    {
+                        var shutdownReason = (eventArgs.Cause as Exception).Message;
+                        Logger.LogWarning($"Consumer {consumer.ConsumerTag} shutdown, code: {eventArgs.ReplyCode}, cause by: {shutdownReason}");
+                    }
+                    break;
+                case ShutdownInitiator.Peer:
+                    //TODO:What should we do?
+                    break;
+                default:
+                    break;
+            }
+            
+            return Task.CompletedTask;
+        }
+
+
+        private async Task ConsumerMessageReceived(object sender, BasicDeliverEventArgs eventArgs)
+        {
+            var consumer = sender as IBasicConsumer;
+            var descriptor = new RichMessageDescriptor(eventArgs.Exchange, eventArgs.RoutingKey, eventArgs.Redelivered, eventArgs.BasicProperties?.ContentEncoding, eventArgs.BasicProperties?.ContentType, eventArgs.BasicProperties?.MessageId, eventArgs.BasicProperties?.Persistent, eventArgs.BasicProperties?.Headers);
+            try
+            {
+                await ProcessMessageAsync(descriptor, eventArgs.Body);
+                Logger.LogInformation($"处理消息成功, 即将Ack, Consumer: {eventArgs.ConsumerTag} Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic}, Redelivered: {descriptor.Redelivered}");
+                consumer.Model.BasicAck(eventArgs.DeliveryTag, multiple: false);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, $"处理消息出错, 即将Nack并设置reueue为true, Consumer: {eventArgs.ConsumerTag} Exchange: {descriptor.MessageGroup}, RoutingKey: {descriptor.MessageTopic}, Redelivered: {descriptor.Redelivered}");
+                consumer.Model.BasicNack(eventArgs.DeliveryTag, multiple: false, true);
+            }
+
         }
 
         private async ValueTask ProcessMessageAsync(
@@ -204,7 +245,6 @@ namespace Core.Messages
                 return;
             }
             await func(typedMessage, descriptor);
-            await Task.Yield();
         }
     }
 }
