@@ -5,11 +5,10 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.IO;
-using System.Threading.Tasks;
 
 namespace Core.Messages
 {
-    public class RabbitMQPersistentConnection : IRabbitMQPersistentConnection
+    public class RabbitMQPersistentConnection : IRabbitMQPersistentConnection, IDisposable
     {
         private readonly IConnectionFactoryResolver _connectionFactoryResolver;
         private readonly ServiceDiscoveryConfiguration _serviceDiscoveryConfiguration;
@@ -17,7 +16,7 @@ namespace Core.Messages
         private IConnection _connection;
         private bool _disposed;
 
-        private readonly object sync_root = new object();
+        private static readonly object sync_root = new object();
 
         public RabbitMQPersistentConnection(
             IConnectionFactoryResolver connectionFactoryResolver,
@@ -57,13 +56,17 @@ namespace Core.Messages
             {
                 return;
             }
-
             _disposed = true;
 
+            if (_connection == null)
+            {
+                return;
+            }
             try
             {
                 _connection.Close();
                 _connection.Dispose();
+                _connection = null;
             }
             catch (IOException ex)
             {
@@ -73,7 +76,6 @@ namespace Core.Messages
 
         public bool TryConnect()
         {
-            //consumer and others also retry to connect
             if (_disposed)
             {
                 throw new ObjectDisposedException(nameof(_connection));
@@ -85,34 +87,11 @@ namespace Core.Messages
             _logger.LogInformation("RabbitMQ Client is trying to connect");
             lock (sync_root)
             {
-                if (_connection != null)
-                {
-                    if (_connection.IsOpen)
-                    {
-                        _connection.Close();
-                    }
-                    _connection.Dispose();
-                    _connection = null;
-                }
-                var delay = 1;
-                while (!IsConnected)
-                {
-                    try
-                    {
-                        _connection = _connectionFactoryResolver.Resolve().CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
-                    }
-                    catch (Exception e)
-                    {
-                        delay = delay << 1;
-                        _logger.LogError(e, $"RabbitMQ connections could not be created and opened, retry after {delay}s");
-                        Task.Delay(TimeSpan.FromSeconds(delay))
-                            .GetAwaiter()
-                            .GetResult();
-                    }
-                }
+                _connection = _connectionFactoryResolver.Resolve().CreateConnection(_serviceDiscoveryConfiguration.ServiceName);
 
                 _connection.ConnectionShutdown += OnConnectionShutdown;
                 _connection.ConnectionBlocked += OnConnectionBlocked;
+                _connection.RecoverySucceeded += OnConnectionRecoverySucceeded;
 
                 _logger.LogInformation($"RabbitMQ persistent connection acquired a connection {_connection.Endpoint.HostName} and is subscribed to failure events");
 
@@ -120,26 +99,43 @@ namespace Core.Messages
             }
         }
 
-        private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
+        private void OnConnectionRecoverySucceeded(object sender, EventArgs e)
         {
-            if (_disposed)
-            {
-                return;
-            }
-
-            _logger.LogWarning("A RabbitMQ connection is blocked. Trying to re-connect...");
-
-            TryConnect();
+            _logger.LogWarning($"A RabbitMQ connection recovery succeeded");
         }
 
-
-        private void OnConnectionShutdown(object sender, ShutdownEventArgs reason)
+        private void OnConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            if (_disposed)
+            var connection = sender as IConnection;
+            _logger.LogWarning($"A RabbitMQ connection is blocked. Reason: {e.Reason}.");
+        }
+
+        private void OnConnectionShutdown(object sender, ShutdownEventArgs eventArgs)
+        {
+            var connection = sender as IConnection;
+            switch (eventArgs.Initiator)
             {
-                return;
+                case ShutdownInitiator.Application:
+                    if (eventArgs.ReplyCode == 200)
+                    {
+                        connection.ConnectionShutdown -= OnConnectionShutdown;
+                        connection.ConnectionBlocked -= OnConnectionBlocked;
+                        _logger.LogInformation($"A RabbitMQ connection is shutdown by app.");
+                        return;
+                    }
+                    break;
+                case ShutdownInitiator.Library:
+                    if (eventArgs.ReplyCode == 541) //Unhandled exception
+                    {
+                        _logger.LogWarning($"A RabbitMQ connection is shutdown, cause by {(eventArgs.Cause as Exception).Message}");
+                    }
+                    break;
+                case ShutdownInitiator.Peer:
+                    break;
+                default:
+                    break;
             }
-            TryConnect();
+            
         }
     }
 }
