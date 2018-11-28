@@ -1,5 +1,6 @@
 ﻿using Core.Extensions;
 using Core.PersistentStore.Auditing.Extensions;
+using Core.PersistentStore.Uow;
 using Core.Session;
 using Core.Session.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -17,9 +18,11 @@ namespace Core.PersistentStore
     /// <summary>
     /// 
     /// </summary>
-    public abstract class CorePersistentStoreDbContext : DbContext, ICoreSessionProviderRequired
+    public abstract class CorePersistentStoreDbContext : DbContext, ICoreSessionProviderRequired, ICurrentUnitOfWorkRequired
     {
         public virtual ICoreSessionProvider SessionProvider { get; set; }
+
+        public virtual ICurrentUnitOfWork CurrentUnitOfWork { get; set; }
 
         protected virtual string CurrentCityId => SessionProvider?.Session?.City?.Id;
 
@@ -35,10 +38,20 @@ namespace Core.PersistentStore
 
         protected virtual string CurrentBrokerName => SessionProvider?.Session?.Broker?.Name;
 
+        protected virtual bool IsSoftDeleteFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.SoftDelete) == true;
+        protected virtual bool IsMayHaveCityFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveCity) == true;
+        protected virtual bool IsMustHaveCityFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveCity) == true;
+        protected virtual bool IsMayHaveCompanyFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveCompany) == true;
+        protected virtual bool IsMustHaveCompanyFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveCompany) == true;
+        protected virtual bool IsMayHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MaytHaveStore) == true;
+        protected virtual bool IsMustHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveStore) == true;
+
+
         private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
 
         public CorePersistentStoreDbContext(DbContextOptions options) : base(options)
         {
+
         }
 
         /// <summary>
@@ -302,7 +315,7 @@ namespace Core.PersistentStore
 
             if (typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => !((ISoftDelete)e).IsDeleted;
+                Expression<Func<TEntity, bool>> filter = e => !((ISoftDelete)e).IsDeleted || ((ISoftDelete)e).IsDeleted != IsSoftDeleteFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
@@ -313,42 +326,42 @@ namespace Core.PersistentStore
                  * But this causes a problem with EF Core (see https://github.com/aspnet/EntityFrameworkCore/issues/9502)
                  * So, we made a workaround to make it working. It works same as above.
                  */
-                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCity)e).CityId == CurrentCityId || (((IMayHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCity)e).CityId == CurrentCityId || (((IMayHaveCity)e).CityId != CurrentCityId && CurrentCityId == null) || (((IMayHaveCity)e).CityId == CurrentCityId) == IsMayHaveCityFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMustHaveCity).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCity)e).CityId == CurrentCityId || (((IMustHaveCity)e).CityId != CurrentCityId && CurrentCityId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCity)e).CityId == CurrentCityId || (((IMustHaveCity)e).CityId != CurrentCityId && CurrentCityId == null) || (((IMustHaveCity)e).CityId == CurrentCityId) == IsMustHaveCityFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompany)e).CompanyId == CurrentCompanyId || (((IMayHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompany)e).CompanyId == CurrentCompanyId || (((IMayHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMayHaveCompany)e).CompanyId == CurrentCompanyId) == IsMayHaveCompanyFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
             if (typeof(IMustHaveCompany).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompany)e).CompanyId == CurrentCompanyId || (((IMustHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompany)e).CompanyId == CurrentCompanyId || (((IMustHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMustHaveCompany)e).CompanyId == CurrentCompanyId) == IsMustHaveCompanyFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveStore)e).StoreId == CurrentStoreId || (((IMayHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveStore)e).StoreId == CurrentStoreId || (((IMayHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null) || (((IMayHaveStore)e).StoreId == CurrentStoreId) == IsMayHaveStoreFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMustHaveStore).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveStore)e).StoreId == CurrentStoreId || (((IMustHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveStore)e).StoreId == CurrentStoreId || (((IMustHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null) || (((IMustHaveStore)e).StoreId == CurrentStoreId)==IsMustHaveStoreFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
             if (typeof(IMustHaveBroker).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveBroker)e).BrokerId == CurrentBrokerId || (((IMustHaveBroker)e).BrokerId != CurrentBrokerId && CurrentBrokerId == null);
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveBroker)e).BrokerId == CurrentBrokerId || (((IMustHaveBroker)e).BrokerId != CurrentBrokerId && CurrentBrokerId == null) || (((IMustHaveBroker)e).BrokerId == CurrentBrokerId) == IsMustHaveStoreFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 

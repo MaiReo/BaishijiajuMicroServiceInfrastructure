@@ -6,7 +6,7 @@
     <PackageId>Baishijiaju.MicroService.Infrastructure.AspNetCore.AbpIntegration</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.6" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
   </ItemGroup>
   <ItemGroup>

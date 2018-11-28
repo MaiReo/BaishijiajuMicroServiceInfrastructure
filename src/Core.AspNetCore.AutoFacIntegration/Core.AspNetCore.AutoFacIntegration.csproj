@@ -7,9 +7,9 @@
     <PackageId>Baishijiaju.MicroService.Infrastructure.AspNetCore.AutoFacIntegration</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.6" />
     <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="AutoFac.Extensions.DependencyInjection" Version="4.3.0" />
+    <PackageReference Include="AutoFac.Extensions.DependencyInjection" Version="4.3.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="3.0.0" />
   </ItemGroup>
   <ItemGroup>

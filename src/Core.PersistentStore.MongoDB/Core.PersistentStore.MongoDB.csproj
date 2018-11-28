@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\common.props"></Import>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>Core.PersistentStore</RootNamespace>
+    <PackageId>Baishijiaju.MicroService.Infrastructure.PersistentStore.Mongo</PackageId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Autofac" Version="4.8.1" />
+    <PackageReference Include="mongocsharpdriver" Version="2.7.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core.Abstractions.AutoFacIntegration\Core.Abstractions.AutoFacIntegration.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -4,6 +4,7 @@ using Core.Messages;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Factories;
 using Core.PersistentStore.Repositories;
+using Core.PersistentStore.Uow;
 using Core.RemoteCall;
 using Core.ServiceDiscovery;
 using Core.Session;
@@ -55,6 +56,13 @@ namespace Core.Abstractions
                .As(typeof(IAsyncRepository<,>))
                .IfNotRegistered(typeof(IAsyncRepository<,>))
                .SingleInstance();
+
+            builder.RegisterType<UnitOfWorkBase>()
+                .AsSelf()
+                .AsImplementedInterfaces()
+                .PropertiesAutowired()
+                .InstancePerLifetimeScope();
+
         }
     }
 

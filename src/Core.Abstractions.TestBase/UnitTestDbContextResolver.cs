@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Core.PersistentStore;
+using Core.PersistentStore.Uow;
 using Core.Session;
 using Microsoft.EntityFrameworkCore;
 
@@ -20,6 +21,10 @@ namespace Core.TestBase
             if (dbContext is ICoreSessionProviderRequired sessionProviderRequired)
             {
                 sessionProviderRequired.SessionProvider = _componentContext.Resolve<UnitTestCoreSessionProvider>();
+            }
+            if (dbContext is ICurrentUnitOfWorkRequired unitOfWorkRequired)
+            {
+                unitOfWorkRequired.CurrentUnitOfWork = _componentContext.Resolve<ICurrentUnitOfWork>();
             }
             return dbContext;
         }
