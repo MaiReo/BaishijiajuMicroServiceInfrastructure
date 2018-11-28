@@ -7,6 +7,7 @@ using Core.Messages.Bus;
 using Core.RemoteCall;
 using Core.ServiceDiscovery;
 using Core.Session;
+using Core.Utilities;
 using Core.Wrappers;
 using System.Net.Http;
 
@@ -18,7 +19,8 @@ namespace Abp.Modules
         {
             IocManager.AddConventionalRegistrar(new MessageHandlerConventionalRegistrar());
             IocManager.IocContainer.Install(new MessageBusInstaller(IocManager));
-            
+            IocManager.RegisterIfNot<RandomServiceEndpointSelector>();
+
         }
 
         public override void Initialize()
@@ -60,6 +62,17 @@ namespace Abp.Modules
                    .UsingFactoryMethod(krnl => krnl.Resolve<ICoreSessionProvider>().Session)
                    );
             }
+            if (!IocManager.IsRegistered<IServiceEndpointSelector>())
+            {
+                IocManager.IocContainer.Register(
+                   Component
+                   .For<IServiceEndpointSelector>()
+                   .ImplementedBy<RandomServiceEndpointSelector>()
+                   .NamedAutomatically(nameof(RandomServiceEndpointSelector))
+                   .LifestyleSingleton()
+                   );
+            }
+                
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using Core.Utilities;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Core.ServiceDiscovery
@@ -25,5 +26,7 @@ namespace Core.ServiceDiscovery
         (string Address, int Port) GetServiceAddress(string serviceName);
 
         ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default);
+
+        ValueTask<IDisposableModel<(string Address, int Port)>> GetServerAddressAndAddRefAsync(string serviceName, CancellationToken cancellationToken = default);
     }
 }

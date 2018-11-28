@@ -1,5 +1,4 @@
 ﻿using Autofac;
-using Autofac.Core;
 using Core.BackgroundJobs;
 using Core.Messages;
 using Core.Messages.Bus;
@@ -8,9 +7,9 @@ using Core.PersistentStore.Repositories;
 using Core.RemoteCall;
 using Core.ServiceDiscovery;
 using Core.Session;
+using Core.Utilities;
 using Core.Wrappers;
 using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 using System.Net.Http;
 
 namespace Core.Abstractions
@@ -33,6 +32,8 @@ namespace Core.Abstractions
                    .RegisterIfNot<ICoreSession, NullCoreSession>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IServiceHelper, NullServiceHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<RandomServiceEndpointSelector>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IServiceEndpointSelector, RandomServiceEndpointSelector>(ServiceLifetime.Singleton)
                    ;
 
             builder.Register(c => c.Resolve<IHttpClientWrapper>().HttpClient)

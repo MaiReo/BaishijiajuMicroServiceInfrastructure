@@ -19,7 +19,7 @@ namespace Autofac
         /// <param name="builder"></param>
         public static void RegisterAssemblyByConvention(this ContainerBuilder builder, Assembly assembly)
         {
-            
+
 
             builder.RegisterAssemblyTypes(assembly)
                    .AssignableTo<ILifestyleSingleton>()
@@ -65,12 +65,14 @@ namespace Autofac
         private static void RegisterRepository(ContainerBuilder builder, Assembly assembly, Type openGenericType)
         {
             var repositoryTypes = assembly.DefinedTypes
+               .Where(t => t.IsAbstract == false)
+               .Where(t => t.IsInterface == false)
                .Where(t => t.GetTypeInfo().ImplementedInterfaces.Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == openGenericType))
                .ToList();
 
             foreach (var repositoryType in repositoryTypes)
             {
-                builder.RegisterGeneric(repositoryType).As(openGenericType).InstancePerDependency();
+                builder.RegisterGeneric(repositoryType).As(openGenericType).InstancePerDependency().PropertiesAutowired();
             }
         }
     }

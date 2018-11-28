@@ -1,5 +1,6 @@
 ﻿using Consul;
 using Core.Exceptions;
+using Core.Utilities;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,8 @@ namespace Core.ServiceDiscovery
         private readonly IServiceHelper _serviceHelper;
         private readonly IHealthCheckHelper _healthCheckHelper;
         private readonly ServiceDiscoveryConfiguration _configuration;
+        private readonly IServiceEndpointSelector _serviceEndpointSelector;
+        private readonly RandomServiceEndpointSelector _randomServiceEndpointSelector;
         private readonly Random _random;
 
         public virtual bool IsRegistered { get; protected set; }
@@ -33,6 +36,8 @@ namespace Core.ServiceDiscovery
             IHealthCheckHelper healthCheckHelper,
             ILogger<ServiceDiscoveryHelper> logger,
             ServiceDiscoveryConfiguration configuration,
+            IServiceEndpointSelector serviceEndpointSelector,
+            RandomServiceEndpointSelector randomServiceEndpointSelector,
             IServer server)
         {
             _random = new Random();
@@ -40,6 +45,8 @@ namespace Core.ServiceDiscovery
             _serviceHelper = serviceHelper;
             _healthCheckHelper = healthCheckHelper;
             _configuration = configuration;
+            _serviceEndpointSelector = serviceEndpointSelector;
+            _randomServiceEndpointSelector = randomServiceEndpointSelector;
             _serverAddressesFeature = server.Features.Get<IServerAddressesFeature>();
             Logger = (ILogger)logger ?? NullLogger.Instance;
         }
@@ -252,13 +259,25 @@ namespace Core.ServiceDiscovery
         public async ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default)
         {
             var services = await _consulClient.Catalog.Service(serviceName);
-
-            var service = services.Response.ElementAtOrDefault(_random.Next(0, services.Response.Length));
-            if (service == null)
+            if (services.Response == null | services.Response.Length == 0)
             {
                 throw new BadGatewayException($"Cannot found service endpoint", serviceName);
             }
-            return (service.ServiceAddress, service.ServicePort);
+            //负载均衡随机算法
+            var allServices = services.Response.Select(x => (x.ServiceAddress, x.ServicePort)).ToList();
+            return _randomServiceEndpointSelector.SelectService(allServices).Model;
+        }
+
+        public async ValueTask<IDisposableModel<(string Address, int Port)>> GetServerAddressAndAddRefAsync(string serviceName, CancellationToken cancellationToken = default)
+        {
+            var services = await _consulClient.Catalog.Service(serviceName);
+            if (services.Response == null | services.Response.Length == 0)
+            {
+                throw new BadGatewayException($"Cannot found service endpoint", serviceName);
+            }
+            var allServices = services.Response.Select(x => (x.ServiceAddress, x.ServicePort)).ToList();
+            var service = _serviceEndpointSelector.SelectService(allServices);
+            return service;
         }
     }
 }
