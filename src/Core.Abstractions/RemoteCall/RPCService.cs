@@ -1,5 +1,6 @@
 ﻿using Core.Exceptions;
 using Core.ServiceDiscovery;
+using Core.Utilities;
 using Core.Wrappers;
 using Newtonsoft.Json;
 using System;
@@ -30,9 +31,11 @@ namespace Core.RemoteCall
             RPCHttpResult result = default;
             HttpRequestMessage httpRequestMessage = default;
             HttpResponseMessage httpResponseMessage = default;
+            IDisposableModel<HttpRequestMessage> addRef = default;
             try
             {
-                httpRequestMessage = await CreateHttpRequest(serviceName, relativeUrl, method, data, contentType, headers, cancellationToken);
+                addRef = await CreateHttpRequest(serviceName, relativeUrl, method, data, contentType, headers, cancellationToken);
+                httpRequestMessage = addRef.Model;
                 httpResponseMessage = await HttpClientWrapper.HttpClient.SendAsync(httpRequestMessage, cancellationToken);
                 if (httpResponseMessage.Content == null)
                 {
@@ -58,6 +61,7 @@ namespace Core.RemoteCall
                 httpResponseMessage?.Dispose();
                 httpRequestMessage?.Content?.Dispose();
                 httpRequestMessage?.Dispose();
+                addRef?.Dispose();
             }
             return result;
         }
@@ -92,11 +96,12 @@ namespace Core.RemoteCall
         }
 
 
-        private async ValueTask<HttpRequestMessage> CreateHttpRequest(string serviceName, string relativeUrl, HttpMethod method, object data = default, string contentType = "application/json", IDictionary<string, string> headers = default, CancellationToken cancellationToken = default)
+        private async ValueTask<IDisposableModel<HttpRequestMessage>> CreateHttpRequest(string serviceName, string relativeUrl, HttpMethod method, object data = default, string contentType = "application/json", IDictionary<string, string> headers = default, CancellationToken cancellationToken = default)
         {
             method = method ?? HttpMethod.Get;
             contentType = contentType ?? "application/json";
-            var serviceHostAndPort = await ServiceDiscoveryHelper.GetServiceBasePathAsync(serviceName, cancellationToken: cancellationToken);
+            var serviceHostAndPortModel = await ServiceDiscoveryHelper.GetServiceBasePathAndAddRefAsync(serviceName, cancellationToken: cancellationToken);
+            var serviceHostAndPort = serviceHostAndPortModel.Model;
             var requestUri = $"{serviceHostAndPort}{relativeUrl}";
             var httpRequestMessage = new HttpRequestMessage(method, requestUri);
             httpRequestMessage.Headers.Accept.Clear();
@@ -125,7 +130,7 @@ namespace Core.RemoteCall
                     httpRequestMessage.Headers.TryAddWithoutValidation(header.Key, header.Value);
                 }
             }
-            return httpRequestMessage;
+            return new DelegateDisposableModel<HttpRequestMessage>(httpRequestMessage, () => serviceHostAndPortModel.Dispose());
         }
     }
 }

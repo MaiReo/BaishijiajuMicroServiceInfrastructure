@@ -23,6 +23,8 @@ namespace Core.ServiceDiscovery
 
         ValueTask<string> GetServiceBasePathAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default);
 
+        ValueTask<IDisposableModel<string>> GetServiceBasePathAndAddRefAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default);
+
         (string Address, int Port) GetServiceAddress(string serviceName);
 
         ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default);
