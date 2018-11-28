@@ -254,6 +254,13 @@ namespace Core.ServiceDiscovery
             return serviceEndPoint;
         }
 
+        public async ValueTask<IDisposableModel<string>> GetServiceBasePathAndAddRefAsync(string serviceName, string scheme = "http://", CancellationToken cancellationToken = default)
+        {
+            var addref = await GetServerAddressAndAddRefAsync(serviceName, cancellationToken);
+            var serviceEndPoint = $"{scheme}{addref.Model.Address}:{addref.Model.Port}";
+            return new DelegateDisposableModel<string>(serviceEndPoint, addref.Dispose);
+        }
+
         public (string Address, int Port) GetServiceAddress(string serviceName) => GetServiceAddressAsync(serviceName).GetAwaiter().GetResult();
 
         public async ValueTask<(string Address, int Port)> GetServiceAddressAsync(string serviceName, CancellationToken cancellationToken = default)
@@ -279,5 +286,7 @@ namespace Core.ServiceDiscovery
             var service = _serviceEndpointSelector.SelectService(allServices);
             return service;
         }
+
+        
     }
 }
