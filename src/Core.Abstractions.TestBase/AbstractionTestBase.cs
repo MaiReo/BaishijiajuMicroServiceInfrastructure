@@ -7,6 +7,8 @@ using Core.Messages.Fake;
 using Core.ServiceDiscovery;
 using Core.Session;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 
 namespace Core.TestBase
@@ -49,6 +51,7 @@ namespace Core.TestBase
             services.RegisterRequiredServices(startupAssembly);
             services.AddMessageBus(TestConsts.MESSAGE_BUS_HOST, 0, TestConsts.MESSAGE_BUS_VHOST, TestConsts.MESSAGE_BUS_EXCHANGE, TestConsts.MESSAGE_BUS_QUEUE, TestConsts.MESSAGE_BUS_USER, TestConsts.MESSAGE_BUS_PWD);
             services.AddServiceDiscovery(o => o.Address = ServiceDiscoveryConfiguration.DEFAULT_ADDRESS);
+            services.AddLogging(c => c.ClearProviders());
 
             var containerBuilder = new ContainerBuilder();
             containerBuilder.Populate(services);

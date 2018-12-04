@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -58,7 +59,7 @@ namespace Core.Messages.Utilities
                 var hasher = _hasherCache.GetOrAdd(algorism, (name) => HashAlgorithm.Create(name.Name));
                 {
                     var hash = hasher.ComputeHash(messageBody);
-                    var hashString = Encoding.UTF8.GetString(hash);
+                    var hashString = string.Join("", hash.Select(b => b.ToString("x2")));
                     return hashString;
                 }
             });
