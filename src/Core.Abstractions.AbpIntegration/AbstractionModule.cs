@@ -4,6 +4,8 @@ using Core.BackgroundJobs;
 using Core.DependencyRegistrars;
 using Core.Messages;
 using Core.Messages.Bus;
+using Core.Messages.Store;
+using Core.Messages.Utilities;
 using Core.RemoteCall;
 using Core.ServiceDiscovery;
 using Core.Session;
@@ -20,7 +22,7 @@ namespace Abp.Modules
             IocManager.AddConventionalRegistrar(new MessageHandlerConventionalRegistrar());
             IocManager.IocContainer.Install(new MessageBusInstaller(IocManager));
             IocManager.RegisterIfNot<RandomServiceEndpointSelector>();
-
+            IocManager.RegisterIfNot<IMessageHasher, MessageHasher>();
         }
 
         public override void Initialize()
@@ -72,7 +74,14 @@ namespace Abp.Modules
                    .LifestyleSingleton()
                    );
             }
-                
+            IocManager.RegisterIfNot<IPublishedMessageStore, PublishedMessageStore>(DependencyLifeStyle.Transient);
+
+            IocManager.RegisterIfNot<IConsumedMessageStore, ConsumedMessageStore>(DependencyLifeStyle.Transient);
+
+            IocManager.RegisterIfNot<IPublishedMessageStorageProvider, PublishedLoggerMessageStorageProvider>();
+
+            IocManager.RegisterIfNot<IConsumedMessageStorageProvider, ConsumedLoggerMessageStorageProvider>();
+
         }
     }
 }

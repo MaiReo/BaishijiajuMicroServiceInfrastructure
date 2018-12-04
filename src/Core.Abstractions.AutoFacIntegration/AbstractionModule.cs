@@ -3,6 +3,8 @@ using Core.BackgroundJobs;
 using Core.Messages;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Factories;
+using Core.Messages.Store;
+using Core.Messages.Utilities;
 using Core.PersistentStore.Repositories;
 using Core.PersistentStore.Uow;
 using Core.RemoteCall;
@@ -35,6 +37,11 @@ namespace Core.Abstractions
                    .RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<RandomServiceEndpointSelector>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IServiceEndpointSelector, RandomServiceEndpointSelector>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IMessageHasher, MessageHasher>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IPublishedMessageStore, PublishedMessageStore>(ServiceLifetime.Transient)
+                   .RegisterIfNot<IConsumedMessageStore, ConsumedMessageStore>(ServiceLifetime.Transient)
+                   .RegisterIfNot<IPublishedMessageStorageProvider, PublishedLoggerMessageStorageProvider>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IConsumedMessageStorageProvider, ConsumedLoggerMessageStorageProvider>(ServiceLifetime.Singleton)
                    ;
 
             builder.Register(c => c.Resolve<IHttpClientWrapper>().HttpClient)

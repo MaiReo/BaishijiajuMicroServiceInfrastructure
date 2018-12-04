@@ -48,7 +48,7 @@ namespace Core.Messages
                 return null;
             }
             var stringMessage = Encoding.UTF8.GetString(message);
-            Logger.LogInformation($"[{descriptor.MessageGroup}][{descriptor.MessageTopic}]{stringMessage}");
+
             var typedMessageObject = JsonConvert.DeserializeObject(stringMessage, type) as IMessage;
 
             return typedMessageObject;
@@ -56,14 +56,23 @@ namespace Core.Messages
 
         public byte[] Serialize(IMessage message)
         {
+            var stringMessage = SerializeString(message);
+            var raw = Encoding.UTF8.GetBytes(stringMessage);
+            return raw;
+        }
+
+        public string SerializeString(IMessage message)
+        {
             var stringMessage = "{}";
             if (message != null)
             {
                 stringMessage = JsonConvert.SerializeObject(message);
             }
-            Logger.LogInformation(stringMessage);
-            var raw = Encoding.UTF8.GetBytes(stringMessage);
-            return raw;
+            return stringMessage;
+        }
+        public string DeSerializeString(byte[] message)
+        {
+            return Encoding.UTF8.GetString(message);
         }
     }
 }

@@ -1,4 +1,7 @@
 ﻿using Core.Messages.Bus.Factories;
+using Core.Messages.Store;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -16,15 +19,18 @@ namespace Core.Messages.Bus
         private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
         private readonly IMessagePublisher _messagePublisher;
         private readonly IMessageScopeCreator _scopeCreator;
+        private readonly ILogger _logger;
 
         public MessageBus(
             IMessageHandlerFactoryStore messageHandlerFactoryStore,
             IMessagePublisher messagePublisher,
-            IMessageScopeCreator scopeCreator)
+            IMessageScopeCreator scopeCreator,
+            ILogger<MessageBus> logger = null)
         {
             _messageHandlerFactoryStore = messageHandlerFactoryStore;
             _messagePublisher = messagePublisher;
             _scopeCreator = scopeCreator;
+            _logger = (ILogger)logger ?? NullLogger.Instance; ;
         }
 
         /// <inheritdoc/>
@@ -41,7 +47,15 @@ namespace Core.Messages.Bus
             }
             using (var scope = _scopeCreator.CreateScope(message, descriptor))
             {
+                var messageStore = scope.Resolve(typeof(IConsumedMessageStore)) as IConsumedMessageStore;
+
+                if (await messageStore.IsConsumedAsync(descriptor, message))
+                {
+                    _logger.LogWarning($"[{descriptor.MessageGroup}][{descriptor.MessageTopic}][{descriptor.MessageId}]Message already consumed.");
+                    return;
+                }
                 await ProcessMessageAsync(scope, message.GetType(), message, descriptor);
+                await messageStore.StoreAsync(descriptor, message);
             }
         }
 
@@ -51,7 +65,7 @@ namespace Core.Messages.Bus
 
             await new SynchronizationContextRemover();
 
-            foreach (var handlerFactories in  _messageHandlerFactoryStore.GetHandlerFactories(messageType).ToList())
+            foreach (var handlerFactories in _messageHandlerFactoryStore.GetHandlerFactories(messageType).ToList())
             {
                 foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
                 {
