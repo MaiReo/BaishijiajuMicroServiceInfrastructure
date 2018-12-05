@@ -13,15 +13,11 @@ namespace Core.Messages
 
         public DefaultMessageConverter(
             IMessageHandlerFactoryStore  messageHandlerFactoryStore,
-            IMessageDescriptorResolver messageTopicResolver,
-            ILogger<DefaultMessageConverter> logger)
+            IMessageDescriptorResolver messageTopicResolver)
         {
             _messageHandlerFactoryStore = messageHandlerFactoryStore;
             _messageTopicResolver = messageTopicResolver;
-            Logger = logger;
         }
-
-        public ILogger<DefaultMessageConverter> Logger { get; }
 
         public IMessage Deserialize(IMessageDescriptor descriptor, byte[] message)
         {

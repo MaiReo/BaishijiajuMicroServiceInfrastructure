@@ -13,7 +13,7 @@ namespace Core.Messages.Store
         {
         }
 
-        public ValueTask<bool> IsConsumedAsync(IMessageDescriptor descriptor, IMessage message, CancellationToken cancellationToken = default)
+        public async ValueTask<bool> IsConsumedAsync(IMessageDescriptor descriptor, IMessage message, CancellationToken cancellationToken = default)
         {
             if (descriptor == null)
             {
@@ -23,7 +23,7 @@ namespace Core.Messages.Store
             {
                 throw new System.ArgumentNullException(nameof(message));
             }
-            return base.IsExistsAsync(descriptor, message, cancellationToken);
+            return await base.IsExistsAsync(descriptor, message, cancellationToken);
         }
     }
 }

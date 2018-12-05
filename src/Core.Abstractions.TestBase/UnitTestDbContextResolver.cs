@@ -8,23 +8,23 @@ namespace Core.TestBase
 {
     public class UnitTestDbContextResolver<TDbContext> : IDbContextResolver<TDbContext> where TDbContext : DbContext
     {
-        private readonly IComponentContext _componentContext;
+        private readonly ILifetimeScope _lifetimeScope;
 
-        public UnitTestDbContextResolver(IComponentContext componentContext)
+        public UnitTestDbContextResolver(ILifetimeScope lifetimeScope)
         {
-            this._componentContext = componentContext;
+            this._lifetimeScope = lifetimeScope;
         }
 
         public TDbContext GetDbContext()
         {
-            var dbContext = _componentContext.Resolve<TDbContext>();
+            var dbContext = _lifetimeScope.Resolve<TDbContext>();
             if (dbContext is ICoreSessionProviderRequired sessionProviderRequired)
             {
-                sessionProviderRequired.SessionProvider = _componentContext.Resolve<UnitTestCoreSessionProvider>();
+                sessionProviderRequired.SessionProvider = _lifetimeScope.Resolve<UnitTestCoreSessionProvider>();
             }
             if (dbContext is ICurrentUnitOfWorkRequired unitOfWorkRequired)
             {
-                unitOfWorkRequired.CurrentUnitOfWork = _componentContext.Resolve<ICurrentUnitOfWork>();
+                unitOfWorkRequired.CurrentUnitOfWork = _lifetimeScope.Resolve<ICurrentUnitOfWork>();
             }
             return dbContext;
         }

@@ -19,12 +19,43 @@ namespace Core.Abstractions.Tests
 
         public virtual DbSet<TestEntityFullAudited> TestEntityFullAuditeds { get; set; }
 
-        public TestDbContext(DbContextOptions options) : base(options)
+        public virtual DbSet<TestPublishedMessageLog> TestPublishedMessageLogs { get; set; }
+        public virtual DbSet<TestConsumedMessageLog> TestConsumedMessageLogs { get; set; }
+
+        public TestDbContext(DbContextOptions<TestDbContext> options) : base(options)
         {
         }
     }
 
-    
+    public class TestPublishedMessageLog : Entity<Guid>, IHasCreationTime
+    {
+        public string Hash { get; set; }
+
+        public string Group { get; set; }
+
+        public string Topic { get; set; }
+
+        public string Message { get; set; }
+
+        public string TypeName { get; set; }
+
+        public DateTimeOffset CreationTime { get; set; }
+    }
+
+    public class TestConsumedMessageLog : Entity<Guid>, IHasCreationTime
+    {
+        public string Hash { get; set; }
+
+        public string Group { get; set; }
+
+        public string Topic { get; set; }
+
+        public string Message { get; set; }
+
+        public string TypeName { get; set; }
+
+        public DateTimeOffset CreationTime { get; set; }
+    }
 
     public class TestEntityHasCity : Entity, IMayHaveCity
     {

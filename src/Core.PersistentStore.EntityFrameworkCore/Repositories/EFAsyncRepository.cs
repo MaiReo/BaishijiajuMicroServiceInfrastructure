@@ -69,7 +69,7 @@ namespace Core.PersistentStore.Repositories
         public virtual async ValueTask<TEntity> InsertAsync(TEntity entity, CancellationToken cancellationToken = default)
         {
             var dbContext = DbContext;
-            var entry = await dbContext.AddAsync(entity, cancellationToken);
+            var entry = dbContext.Add(entity);
             await dbContext.SaveChangesAsync(cancellationToken);
             return entry.Entity;
         }

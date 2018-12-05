@@ -15,6 +15,7 @@ namespace Core.Abstractions.Tests
 {
     public class MessageUtilitiesTests : AbstractionTestBase<MessageUtilitiesTests>
     {
+
         public MessageUtilitiesTests()
         {
             FakePublishedMessageStorageProvider = (FakePublishedMessageStorageProvider)Resolve<IPublishedMessageStorageProvider>();
@@ -25,7 +26,7 @@ namespace Core.Abstractions.Tests
         public FakeConsumedMessageStorageProvider FakeConsumedMessageStorageProvider { get; }
 
         [Fact(DisplayName = "消息哈希测试")]
-        public async ValueTask MessageHasherTest()
+        public async Task MessageHasherTest()
         {
             var hasher = Resolve<IMessageHasher>();
 
@@ -63,7 +64,7 @@ namespace Core.Abstractions.Tests
         }
 
         [Fact(DisplayName = "重复消息发送测试")]
-        public async ValueTask DuplicateMessagePublishTest()
+        public async Task DuplicateMessagePublishTest()
         {
             var testMessage = new TestMessage()
             {
@@ -78,7 +79,7 @@ namespace Core.Abstractions.Tests
         }
 
         [Fact(DisplayName = "重复消息接收测试")]
-        public async ValueTask DuplicateMessageReceiveTest()
+        public async Task DuplicateMessageReceiveTest()
         {
             var testMessage = new TestMessage()
             {
@@ -94,7 +95,7 @@ namespace Core.Abstractions.Tests
         }
 
         [Fact(DisplayName = "重复消息接收测试2")]
-        public async ValueTask DuplicateMessageReceiveTest2()
+        public async Task DuplicateMessageReceiveTest2()
         {
             var testMessage = new TestMessage()
             {
