@@ -1,4 +1,5 @@
 ﻿using Core.Messages.Utilities;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +42,23 @@ namespace Core.Messages.Store
                 throw new System.ArgumentNullException(nameof(message));
             }
             var hash = await _messageHasher.HashAsync(descriptor, message, cancellationToken: cancellationToken);
-            var messageString = _messageConverter.SerializeString(message);
+            string messageString = null;
+            try
+            {
+                if (descriptor is IRichMessageDescriptor rich && rich.Raw != null && rich.Raw.Length != 0)
+                {
+                    messageString = Encoding.UTF8.GetString(rich.Raw);
+                }
+                else
+                {
+                    messageString = _messageConverter.SerializeString(message);
+                }
+            }
+            catch (System.Exception e)
+            {
+                messageString = e.ToString();
+            }
+
             var typeName = message.GetType().AssemblyQualifiedName;
             var model = new MessageModel(typeName, messageString, hash, descriptor.MessageGroup, descriptor.MessageTopic);
             await _storageProvider.SaveAsync(model, cancellationToken);

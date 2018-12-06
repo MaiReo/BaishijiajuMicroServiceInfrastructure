@@ -214,7 +214,8 @@ namespace Core.Messages
         private async Task ConsumerMessageReceived(object sender, BasicDeliverEventArgs eventArgs)
         {
             var consumer = sender as IBasicConsumer;
-            var descriptor = new RichMessageDescriptor(eventArgs.Exchange, eventArgs.RoutingKey, eventArgs.Redelivered, eventArgs.BasicProperties?.ContentEncoding, eventArgs.BasicProperties?.ContentType, eventArgs.BasicProperties?.MessageId, eventArgs.BasicProperties?.Persistent, eventArgs.BasicProperties?.Headers);
+            var descriptor = new RichMessageDescriptor(eventArgs.Body,
+                eventArgs.Exchange, eventArgs.RoutingKey, eventArgs.Redelivered, eventArgs.BasicProperties?.ContentEncoding, eventArgs.BasicProperties?.ContentType, eventArgs.BasicProperties?.MessageId, eventArgs.BasicProperties?.Persistent, eventArgs.BasicProperties?.Headers);
             try
             {
                 await ProcessMessageAsync(descriptor, eventArgs.Body);

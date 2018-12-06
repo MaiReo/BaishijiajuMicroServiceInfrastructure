@@ -30,21 +30,35 @@ namespace Core.Messages.Utilities
             CancellationToken cancellationToken = default)
         {
             algorism = (algorism == default) ? HashAlgorithmName.SHA1 : algorism;
-            //On Consuming
-            if (descriptor is IRichMessageDescriptor rich && (!string.IsNullOrWhiteSpace(rich.MessageId)))
+
+            byte[] raw = null;
+
+            if (descriptor is IRichMessageDescriptor rich)
             {
-                return await Task.Run(async () =>
+                if (rich.Raw != null && rich.Raw.Length != 0)
                 {
-                    var messageId = Encoding.UTF8.GetBytes(rich.MessageId);
-                    return await HashBodyAsync(descriptor, messageId, algorism, cancellationToken);
-                });
+                    raw = rich.Raw;
+                }
+                else if (!string.IsNullOrWhiteSpace(rich.MessageId))
+                {
+                    raw = Encoding.UTF8.GetBytes(rich.MessageId);
+                }
             }
-            //On Publishing
-            return await Task.Run(async () =>
+            if (raw == null)
             {
-                var messageBody = _messageConverter.Serialize(message);
-                return await HashBodyAsync(descriptor, messageBody, algorism, cancellationToken);
-            });
+                try
+                {
+                    raw = _messageConverter.Serialize(message);
+                }
+                catch (Exception)
+                {
+                }
+            }
+            if (raw == null)
+            {
+                return "SRC-ERROR";
+            }
+            return await Task.Run(async () => await HashBodyAsync(descriptor, raw, algorism, cancellationToken));
         }
 
         public async ValueTask<string> HashBodyAsync(
@@ -56,11 +70,16 @@ namespace Core.Messages.Utilities
             algorism = (algorism == default) ? HashAlgorithmName.SHA1 : algorism;
             return await Task.Run(() =>
             {
-                var hasher = _hasherCache.GetOrAdd(algorism, (name) => HashAlgorithm.Create(name.Name));
+                try
                 {
+                    var hasher = _hasherCache.GetOrAdd(algorism, (name) => HashAlgorithm.Create(name.Name));
                     var hash = hasher.ComputeHash(messageBody);
                     var hashString = string.Join("", hash.Select(b => b.ToString("x2")));
                     return hashString;
+                }
+                catch (Exception e)
+                {
+                    return $"HASH-ERROR:{e.Message}";
                 }
             });
         }

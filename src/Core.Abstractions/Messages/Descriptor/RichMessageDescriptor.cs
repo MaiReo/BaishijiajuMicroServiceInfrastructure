@@ -11,8 +11,18 @@ namespace Core.Messages
             Headers = new Dictionary<string, object>();
         }
 
-        public RichMessageDescriptor(string messageGroup, string messageTopic, bool redelivered, string contentEncoding, string contentType, string messageId, bool? persistent, IDictionary<string, object> headers) : this(messageGroup, messageTopic)
+        public RichMessageDescriptor(
+            byte[] raw,
+            string messageGroup,
+            string messageTopic,
+            bool redelivered,
+            string contentEncoding,
+            string contentType,
+            string messageId,
+            bool? persistent,
+            IDictionary<string, object> headers) : this(messageGroup, messageTopic)
         {
+            Raw = raw;
             Redelivered = redelivered;
             ContentEncoding = contentEncoding;
             ContentType = contentType;
@@ -20,6 +30,11 @@ namespace Core.Messages
             Persistent = persistent;
             Headers = headers;
         }
+
+        /// <summary>
+        /// 原始数据
+        /// </summary>
+        public byte[] Raw { get; }
 
         /// <summary>
         /// 是否是第二次接收

@@ -19,5 +19,7 @@ namespace Core.Messages
 
         IDictionary<string, object> Headers { get; }
 
+        byte[] Raw { get; }
+
     }
 }

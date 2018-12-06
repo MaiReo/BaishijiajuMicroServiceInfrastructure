@@ -1,6 +1,6 @@
-﻿using Core.Messages.Bus;
-using Core.Messages.Bus.Factories;
+﻿using Core.Messages.Bus.Factories;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Newtonsoft.Json;
 using System.Text;
 
@@ -10,13 +10,16 @@ namespace Core.Messages
     {
         private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
         private readonly IMessageDescriptorResolver _messageTopicResolver;
+        private readonly ILogger _logger;
 
         public DefaultMessageConverter(
-            IMessageHandlerFactoryStore  messageHandlerFactoryStore,
-            IMessageDescriptorResolver messageTopicResolver)
+            IMessageHandlerFactoryStore messageHandlerFactoryStore,
+            IMessageDescriptorResolver messageTopicResolver,
+            ILogger<DefaultMessageConverter> logger = null)
         {
             _messageHandlerFactoryStore = messageHandlerFactoryStore;
             _messageTopicResolver = messageTopicResolver;
+            _logger = (ILogger)logger ?? NullLogger.Instance;
         }
 
         public IMessage Deserialize(IMessageDescriptor descriptor, byte[] message)
@@ -45,7 +48,16 @@ namespace Core.Messages
             }
             var stringMessage = Encoding.UTF8.GetString(message);
 
-            var typedMessageObject = JsonConvert.DeserializeObject(stringMessage, type) as IMessage;
+            IMessage typedMessageObject = null;
+
+            try
+            {
+                typedMessageObject = JsonConvert.DeserializeObject(stringMessage, type) as IMessage;
+            }
+            catch (System.Exception e)
+            {
+                _logger.LogError(e, "反序列化消息失败");
+            }
 
             return typedMessageObject;
         }
@@ -53,6 +65,10 @@ namespace Core.Messages
         public byte[] Serialize(IMessage message)
         {
             var stringMessage = SerializeString(message);
+            if (string.IsNullOrWhiteSpace(stringMessage))
+            {
+                return null;
+            }
             var raw = Encoding.UTF8.GetBytes(stringMessage);
             return raw;
         }
@@ -62,12 +78,23 @@ namespace Core.Messages
             var stringMessage = "{}";
             if (message != null)
             {
-                stringMessage = JsonConvert.SerializeObject(message);
+                try
+                {
+                    stringMessage = JsonConvert.SerializeObject(message);
+                }
+                catch (System.Exception e)
+                {
+                    _logger.LogError(e, "序列化消息失败");
+                }
             }
             return stringMessage;
         }
         public string DeSerializeString(byte[] message)
         {
+            if (message == null)
+            {
+                return null;
+            }
             return Encoding.UTF8.GetString(message);
         }
     }

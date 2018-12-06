@@ -17,14 +17,22 @@ namespace Core.Messages
 
         public void Publish(IMessageWrapper messageWrapper)
         {
-            _rabbitMQWrapper.Publish(messageWrapper.Descriptor,
-                _messageConverter.Serialize(messageWrapper.Message));
+            var raw = _messageConverter.Serialize(messageWrapper.Message);
+            if (raw == null)
+            {
+                return;
+            }
+            _rabbitMQWrapper.Publish(messageWrapper.Descriptor, raw);
         }
 
-        public ValueTask PublishAsync(IMessageWrapper messageWrapper)
+        public async ValueTask PublishAsync(IMessageWrapper messageWrapper)
         {
-            return _rabbitMQWrapper.PublishAsync(messageWrapper.Descriptor,
-                _messageConverter.Serialize(messageWrapper.Message));
+            var raw = _messageConverter.Serialize(messageWrapper.Message);
+            if (raw == null)
+            {
+                return;
+            }
+            await _rabbitMQWrapper.PublishAsync(messageWrapper.Descriptor, raw);
         }
     }
 }

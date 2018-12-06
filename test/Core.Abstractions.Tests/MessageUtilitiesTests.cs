@@ -3,11 +3,13 @@ using Core.Messages;
 using Core.Messages.Store;
 using Core.Messages.Utilities;
 using Core.TestBase;
+using Newtonsoft.Json;
 using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -101,7 +103,23 @@ namespace Core.Abstractions.Tests
             {
                 Name = "test"
             };
-            var descriptor = new RichMessageDescriptor("", "TestMessage", false, null, null, Guid.NewGuid().ToString(), true, null);
+            var descriptor = new RichMessageDescriptor(null, "", "TestMessage", false, null, null, Guid.NewGuid().ToString(), true, null);
+
+            for (int i = 0; i < 10; i++)
+            {
+                await MessageBus.OnMessageReceivedAsync(testMessage, descriptor);
+            }
+            FakeConsumedMessageStorageProvider.SaveAsyncParameters.Count.ShouldBe(1);
+        }
+        [Fact(DisplayName = "重复消息接收测试3")]
+        public async Task DuplicateMessageReceiveTest3()
+        {
+            var testMessage = new TestMessage()
+            {
+                Name = "test"
+            };
+            var raw = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(testMessage));
+            var descriptor = new RichMessageDescriptor(raw, "", "TestMessage", false, null, null, null, true, null);
 
             for (int i = 0; i < 10; i++)
             {
