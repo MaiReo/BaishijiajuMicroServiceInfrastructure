@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>../../Infrastructure.Abstractions.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+</Project>

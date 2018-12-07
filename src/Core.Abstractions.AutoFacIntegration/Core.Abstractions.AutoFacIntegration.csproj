@@ -1,14 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\target-std.props"></Import>
   <Import Project="..\..\common.props"></Import>
+  <Import Project="..\..\sign.props"></Import>
+
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Baishijiaju.MicroService.Infrastructure.AutoFacIntegration</PackageId>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
   </ItemGroup>
   
   <ItemGroup>

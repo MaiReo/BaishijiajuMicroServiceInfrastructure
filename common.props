@@ -1,17 +1,10 @@
 <Project>
+  <Import Project="version.props"></Import>
+  <Import Project="meta.props"></Import>
+  
   <PropertyGroup>
     <LangVersion>latest</LangVersion>
-    <AssemblyVersion>2.1.6.4</AssemblyVersion>
     <IncludeSource>true</IncludeSource>
     <IncludeSymbols>true</IncludeSymbols>
-    <Version>2.1.6.4</Version>
-    <Authors>MaiReo</Authors>
-    <Company>Baishijiaju</Company>
-    <Product>MicroService</Product>
-    <Description>mesesage queue, service discovery, tenanty-like EF Core query filters. auditing entities, generic repository.</Description>
-    <Copyright>Baishijiaju</Copyright>
-    <PackageProjectUrl>https://github.com/MaiReo/BaishijiajuMicroServiceInfrastructure</PackageProjectUrl>
-    <PackageLicense>https://raw.githubusercontent.com/MaiReo/BaishijiajuMicroServiceInfrastructure/master/LICENSE</PackageLicense>
-    <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 </Project>

@@ -1,8 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <Import Project="..\..\common.props"></Import>
+  <Import Project="..\..\target-std.props"></Import>
+  
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Baishijiaju.MicroService.Infrastructure.AbpIntegration</PackageId>
   </PropertyGroup>
   <ItemGroup>
