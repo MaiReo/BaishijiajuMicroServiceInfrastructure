@@ -18,7 +18,7 @@ namespace Core.PersistentStore.Uow
                 [DataFilters.MustHaveCity] = true,
                 [DataFilters.MayHaveCompany] = true,
                 [DataFilters.MustHaveCompany] = true,
-                [DataFilters.MaytHaveStore] = true,
+                [DataFilters.MayHaveStore] = true,
                 [DataFilters.MustHaveStore] = true,
             };
         }

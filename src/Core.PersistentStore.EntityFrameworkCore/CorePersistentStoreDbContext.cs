@@ -43,8 +43,9 @@ namespace Core.PersistentStore
         protected virtual bool IsMustHaveCityFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveCity) == true;
         protected virtual bool IsMayHaveCompanyFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveCompany) == true;
         protected virtual bool IsMustHaveCompanyFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveCompany) == true;
-        protected virtual bool IsMayHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MaytHaveStore) == true;
+        protected virtual bool IsMayHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveStore) == true;
         protected virtual bool IsMustHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveStore) == true;
+        protected virtual bool IsMustHaveBrokerFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveBroker) == true;
 
 
         private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
@@ -361,7 +362,7 @@ namespace Core.PersistentStore
 
             if (typeof(IMustHaveBroker).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveBroker)e).BrokerId == CurrentBrokerId || (((IMustHaveBroker)e).BrokerId != CurrentBrokerId && CurrentBrokerId == null) || (((IMustHaveBroker)e).BrokerId == CurrentBrokerId) == IsMustHaveStoreFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveBroker)e).BrokerId == CurrentBrokerId || (((IMustHaveBroker)e).BrokerId != CurrentBrokerId && CurrentBrokerId == null) || (((IMustHaveBroker)e).BrokerId == CurrentBrokerId) == IsMustHaveBrokerFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
