@@ -9,18 +9,9 @@ namespace Core.PersistentStore.Uow
     {
         private readonly ConcurrentDictionary<string, bool> _filterStatus;
 
-        public UnitOfWorkBase()
+        public UnitOfWorkBase(IUnitOfWorkOptions unitOfWorkOptions)
         {
-            _filterStatus = new ConcurrentDictionary<string, bool>()
-            {
-                [DataFilters.SoftDelete] = true,
-                [DataFilters.MayHaveCity] = true,
-                [DataFilters.MustHaveCity] = true,
-                [DataFilters.MayHaveCompany] = true,
-                [DataFilters.MustHaveCompany] = true,
-                [DataFilters.MayHaveStore] = true,
-                [DataFilters.MustHaveStore] = true,
-            };
+            _filterStatus = new ConcurrentDictionary<string, bool>(unitOfWorkOptions.GetAllFilters());
         }
 
         public IDisposable DisableFilters(params string[] names)

@@ -13,6 +13,7 @@ namespace Core.Abstractions
         {
             builder.RegisterType<TImplementation>()
                 .AsSelf()
+                .PropertiesAutowired()
                 .IfNotRegistered(typeof(TImplementation))
                 .If(lifeStyle == ServiceLifetime.Singleton, x => x.SingleInstance().ExternallyOwned())
                 .If(lifeStyle == ServiceLifetime.Transient, x => x.InstancePerDependency());
@@ -29,6 +30,7 @@ namespace Core.Abstractions
             builder.RegisterType<TImplementation>()
                 .AsSelf()
                 .As<TService>()
+                .PropertiesAutowired()
                 .IfNotRegistered(typeof(TService))
                 .If(lifeStyle == ServiceLifetime.Singleton, x => x.SingleInstance().ExternallyOwned())
                 .If(lifeStyle == ServiceLifetime.Transient, x => x.InstancePerDependency());
@@ -43,6 +45,7 @@ namespace Core.Abstractions
             builder.RegisterInstance(instance)
                 .AsSelf()
                 .If(instance.GetType() != typeof(TService), x => x.As<TService>())
+                .PropertiesAutowired()
                 .IfNotRegistered(typeof(TService))
                 .SingleInstance()
                 .ExternallyOwned();

@@ -42,6 +42,7 @@ namespace Core.Abstractions
                    .RegisterIfNot<IConsumedMessageStore, ConsumedMessageStore>(ServiceLifetime.Transient)
                    .RegisterIfNot<IPublishedMessageStorageProvider, PublishedLoggerMessageStorageProvider>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IConsumedMessageStorageProvider, ConsumedLoggerMessageStorageProvider>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IUnitOfWorkOptions, UnitOfWorkOptions>(ServiceLifetime.Singleton)
                    ;
 
             builder.Register(c => c.Resolve<IHttpClientWrapper>().HttpClient)
