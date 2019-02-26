@@ -4,18 +4,13 @@ using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
 using Core.Messages.Bus.Factories;
+using Core.Messages.Bus.Internal;
 
 namespace Core.Messages.Bus
 {
     internal class MessageBusInstaller : IWindsorInstaller
     {
-        private readonly IIocResolver _iocResolver;
-        private IMessageHandlerFactoryStore  _messageHandlerFactoryStore;
-
-        public MessageBusInstaller(IIocResolver iocResolver)
-        {
-            _iocResolver = iocResolver;
-        }
+        private IMessageHandlerFactoryStore _messageHandlerFactoryStore;
 
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
@@ -29,7 +24,7 @@ namespace Core.Messages.Bus
                 .ImplementedBy<MessageBus>()
                 .LifestyleTransient()
             );
-            
+
             _messageHandlerFactoryStore = container.Resolve<IMessageHandlerFactoryStore>();
             container.Kernel.ComponentRegistered += RegisterMessageHandler;
         }
@@ -43,22 +38,9 @@ namespace Core.Messages.Bus
             {
                 return;
             }
-            var interfaces = handler.ComponentModel.Implementation.GetInterfaces();
-            foreach (var @interface in interfaces)
+            foreach (var descriptor in handler.ComponentModel.Implementation.GetMessageHandlerDescriptors())
             {
-                if (!typeof(IMessageHandler).IsAssignableFrom(@interface))
-                {
-                    continue;
-                }
-                if (!@interface.IsGenericType)
-                {
-                    continue;
-                }
-                var genericArgs = @interface.GetGenericArguments();
-                if (genericArgs.Length == 1)
-                {
-                    _messageHandlerFactoryStore.Register(genericArgs[0], new IocMessageHandlerFactory(handler.ComponentModel.Implementation));
-                }
+                _messageHandlerFactoryStore.Register(descriptor.MessageType, new IocMessageHandlerFactory(descriptor));
             }
         }
     }

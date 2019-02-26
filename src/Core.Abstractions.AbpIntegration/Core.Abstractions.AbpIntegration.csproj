@@ -7,7 +7,7 @@
     <PackageId>Baishijiaju.MicroService.Infrastructure.AbpIntegration</PackageId>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Abp" Version="4.0.2" />
+    <PackageReference Include="Abp" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core.Abstractions\Core.Abstractions.csproj" />

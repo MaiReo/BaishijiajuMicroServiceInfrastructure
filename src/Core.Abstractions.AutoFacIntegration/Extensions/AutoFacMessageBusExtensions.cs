@@ -1,21 +1,14 @@
 ﻿using Autofac;
 using Autofac.Core;
 using Core.Messages.Bus.Factories;
+using Core.Messages.Bus.Internal;
 using System;
 using System.Linq;
 
 namespace Core.Messages.Bus.Extensions
 {
-
     public static class AutoFacMessageBusExtensions
     {
-        private static readonly Type[] _messageHandlerTypes = new[]
-       {
-           typeof(IMessageHandler<>),
-           typeof(IRichMessageHandler<>),
-           typeof(IAsyncMessageHandler<>),
-           typeof(IAsyncRichMessageHandler<>)
-        };
         public static IMessageBus RegisterMessageHandlers(this IMessageBus messageBus, ILifetimeScope lifetimeScope)
         {
             foreach (var registration in lifetimeScope.ComponentRegistry.Registrations)
@@ -24,22 +17,10 @@ namespace Core.Messages.Bus.Extensions
                 var services = registration.Services.OfType<IServiceWithType>().Select(x => x.ServiceType);
                 foreach (var service in services)
                 {
-                    if (!typeof(IMessageHandler).IsAssignableFrom(service))
+                    foreach (var descriptor in service.GetMessageHandlerDescriptors())
                     {
-                        continue;
+                        messageBus.Register(descriptor.MessageType, new IocMessageHandlerFactory(descriptor));
                     }
-                    if (!service.IsGenericType)
-                    {
-                        continue;
-                    }
-
-                    var genDefType = service.GetGenericTypeDefinition();
-                    if (!_messageHandlerTypes.Any(type => type == genDefType))
-                    {
-                        continue;
-                    }
-                    var messageType = service.GetGenericArguments().First();
-                    messageBus.Register(messageType, new IocMessageHandlerFactory(handlerType));
                 }
             }
             return messageBus;

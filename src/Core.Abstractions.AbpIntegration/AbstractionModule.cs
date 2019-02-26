@@ -20,7 +20,7 @@ namespace Abp.Modules
         public override void PreInitialize()
         {
             IocManager.AddConventionalRegistrar(new MessageHandlerConventionalRegistrar());
-            IocManager.IocContainer.Install(new MessageBusInstaller(IocManager));
+            IocManager.IocContainer.Install(new MessageBusInstaller());
             IocManager.RegisterIfNot<RandomServiceEndpointSelector>();
             IocManager.RegisterIfNot<IMessageHasher, MessageHasher>();
         }
