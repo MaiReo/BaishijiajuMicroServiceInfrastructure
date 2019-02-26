@@ -37,7 +37,6 @@ namespace Core.Messages.Bus.Internal
             {
                 const string methodName = nameof(IAsyncMessageHandler<IMessage>.HandleMessageAsync);
 
-                //形参表达式
                 ParameterExpression instanceParameter = Expression.Parameter(typeof(IMessageHandler), "@handler");
                 ParameterExpression messageParameter = Expression.Parameter(typeof(IMessage), "message");
                 ParameterExpression descriptorParameter = Expression.Parameter(typeof(IRichMessageDescriptor), "descriptor");
@@ -47,9 +46,6 @@ namespace Core.Messages.Bus.Internal
 
                 Expression call = handlerDescriptor.IsRich ? Expression.Call(convertInstanceToType, methodName, null, convertMessageToType, descriptorParameter)
                                          : Expression.Call(convertInstanceToType, methodName, null, convertMessageToType);
-
-                //不需要块表达式
-                //Expression returnCastExpression = Expression.Convert(call, typeof(ValueTask));
 
                 var lambda = Expression.Lambda<Func<IMessageHandler, IMessage, IRichMessageDescriptor, ValueTask>>(call, instanceParameter, messageParameter, descriptorParameter);
 
@@ -75,7 +71,6 @@ namespace Core.Messages.Bus.Internal
             {
                 const string methodName = nameof(IMessageHandler<IMessage>.HandleMessage);
 
-                //形参表达式
                 ParameterExpression instanceParameter = Expression.Parameter(typeof(IMessageHandler), "@handler");
                 ParameterExpression messageParameter = Expression.Parameter(typeof(IMessage), "message");
                 ParameterExpression descriptorParameter = Expression.Parameter(typeof(IRichMessageDescriptor), "descriptor");
@@ -85,9 +80,6 @@ namespace Core.Messages.Bus.Internal
 
                 Expression call = handlerDescriptor.IsRich ? Expression.Call(convertInstanceToType, methodName, null, convertMessageToType, descriptorParameter)
                                          : Expression.Call(convertInstanceToType, methodName, null, convertMessageToType);
-
-                //不需要块表达式
-                //Expression returnCastExpression = Expression.Convert(call, typeof(ValueTask));
 
                 var lambda = Expression.Lambda<Action<IMessageHandler, IMessage, IRichMessageDescriptor>>(call, instanceParameter, messageParameter, descriptorParameter);
 

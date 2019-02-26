@@ -1,4 +1,4 @@
-﻿using Autofac;
+﻿                                                                                   using Autofac;
 using Core.BackgroundJobs;
 using Core.Messages;
 using Core.Messages.Bus;

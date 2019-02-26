@@ -101,6 +101,9 @@ namespace Core.Abstractions.Tests
         {
             await MessageBus.OnMessageReceivedAsync(new TestMessage3 { Name = "testmsg3" }, new RichMessageDescriptor("test.group", "test.topic3"));
             await MessageBus.OnMessageReceivedAsync(new TestMessage4 { Name = "testmsg4" }, new RichMessageDescriptor("test.group", "test.topic4"));
+            await MessageBus.OnMessageReceivedAsync(new TestMessage4 { Name = "testmsg4-2" }, new RichMessageDescriptor("test.group", "test.topic4-2"));
+            await MessageBus.OnMessageReceivedAsync(new TestMessage4 { Name = "testmsg4-3" }, new RichMessageDescriptor("test.group", "test.topic4-3"));
+            await MessageBus.OnMessageReceivedAsync(new TestMessage4 { Name = "testmsg4-4" }, new RichMessageDescriptor("test.group", "test.topic4-4"));
             var parameters = Resolve<TestMessageMultipleHandler>().Parameters;
             parameters.Single(x => x is TestMessage3 message && message.Name == "testmsg3");
             parameters.Single(x => x is TestMessage4 message && message.Name == "testmsg4");

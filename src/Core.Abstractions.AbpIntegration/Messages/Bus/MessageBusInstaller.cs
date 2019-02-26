@@ -38,11 +38,7 @@ namespace Core.Messages.Bus
             /* This code checks if registering component implements any IMessageHandler<in TMessage> interface, if yes,
              * gets all message handler interfaces and registers type to Message Bus for each handling message.
              */
-            if (!typeof(IMessageHandler).IsAssignableFrom(handler.ComponentModel.Implementation))
-            {
-                return;
-            }
-            foreach (var descriptor in handler.ComponentModel.Implementation.GetMessageHandlerDescriptors())
+            foreach (var descriptor in handler.ComponentModel.Implementation.GetMessageHandlerDescriptors(handler.ComponentModel.Services))
             {
                 _messageHandlerFactoryStore.Register(descriptor.MessageType, new IocMessageHandlerFactory(descriptor));
             }

@@ -15,12 +15,9 @@ namespace Core.Messages.Bus.Extensions
             {
                 var handlerType = registration.Activator.LimitType;
                 var services = registration.Services.OfType<IServiceWithType>().Select(x => x.ServiceType);
-                foreach (var service in services)
+                foreach (var descriptor in handlerType.GetMessageHandlerDescriptors(services))
                 {
-                    foreach (var descriptor in service.GetMessageHandlerDescriptors())
-                    {
-                        messageBus.Register(descriptor.MessageType, new IocMessageHandlerFactory(descriptor));
-                    }
+                    messageBus.Register(descriptor.MessageType, new IocMessageHandlerFactory(descriptor));
                 }
             }
             return messageBus;

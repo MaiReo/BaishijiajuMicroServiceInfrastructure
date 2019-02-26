@@ -12,7 +12,7 @@ namespace Core.Messages.Bus.Factories
         /// <returns></returns>
         IMessageHandler GetHandler(IMessageScope scope);
 
-        [Obsolete("Use GetHandlerDescriptor instead")]
+        [Obsolete("Use GetHandlerDescriptor().HandlerType instead", true)]
         Type GetHandlerType();
 
         MessageHandlerDescriptor GetHandlerDescriptor();
