@@ -9,12 +9,12 @@ namespace Core.Messages.Bus.Factories
             if (x == null && y == null) return true;
             if (x == null && y != null) return false;
             if (x != null && y == null) return false;
-            return x.GetHandlerType() == y.GetHandlerType();
+            return x.GetHandlerDescriptor().HandlerType == y.GetHandlerDescriptor().HandlerType;
         }
 
         public int GetHashCode(IMessageHandlerFactory obj)
         {
-            return obj?.GetHandlerType()?.GetHashCode() ?? 0;
+            return obj?.GetHandlerDescriptor().HandlerType?.GetHashCode() ?? 0;
         }
     }
 }

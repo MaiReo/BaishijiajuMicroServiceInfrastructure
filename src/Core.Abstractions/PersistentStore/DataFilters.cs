@@ -11,7 +11,8 @@ namespace Core.PersistentStore
         public const string MustHaveCity = "MustHaveCity";
         public const string MayHaveCompany = "MayHaveCompany";
         public const string MustHaveCompany = "MustHaveCompany";
-        public const string MaytHaveStore = "MaytHaveStore";
+        public const string MayHaveStore = "MaytHaveStore";
         public const string MustHaveStore = "MustHaveStore";
+        public const string MustHaveBroker = "MustHaveBroker";
     }
 }

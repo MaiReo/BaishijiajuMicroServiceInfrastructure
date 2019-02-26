@@ -15,6 +15,7 @@ namespace Core.ServiceDiscovery
             builder.RegisterType<TImplementation>()
                 .AsSelf()
                 .As<TService>()
+                .PropertiesAutowired()
                 .IfNotRegistered(typeof(TService))
                 .If(lifeStyle == ServiceLifetime.Singleton, x => x.SingleInstance().ExternallyOwned())
                 .If(lifeStyle == ServiceLifetime.Transient, x => x.InstancePerDependency());

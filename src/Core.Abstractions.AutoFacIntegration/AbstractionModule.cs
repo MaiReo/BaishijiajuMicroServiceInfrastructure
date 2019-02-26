@@ -1,8 +1,9 @@
-﻿using Autofac;
+﻿                                                                                   using Autofac;
 using Core.BackgroundJobs;
 using Core.Messages;
 using Core.Messages.Bus;
 using Core.Messages.Bus.Factories;
+using Core.Messages.Bus.Internal;
 using Core.Messages.Store;
 using Core.Messages.Utilities;
 using Core.PersistentStore.Repositories;
@@ -24,6 +25,7 @@ namespace Core.Abstractions
             builder.RegisterIfNot<IMessagePublisher, MessagePublisher>(ServiceLifetime.Transient)
                    .RegisterIfNot<IMessageDescriptorResolver, MessageDescriptorResolver>(ServiceLifetime.Transient)
                    .RegisterIfNot<IMessageScopeCreator, MessageScopeCreator>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IMessageHandlerCaller, ExpressionTreeMessageHandlerCaller>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IMessageHandlerFactoryStore, MessageHandlerFactoryStore>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IMessageBus, MessageBus>(ServiceLifetime.Transient)
                    .RegisterIfNot<IMessageConverter, DefaultMessageConverter>(ServiceLifetime.Singleton)
@@ -42,6 +44,7 @@ namespace Core.Abstractions
                    .RegisterIfNot<IConsumedMessageStore, ConsumedMessageStore>(ServiceLifetime.Transient)
                    .RegisterIfNot<IPublishedMessageStorageProvider, PublishedLoggerMessageStorageProvider>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IConsumedMessageStorageProvider, ConsumedLoggerMessageStorageProvider>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IUnitOfWorkOptions, UnitOfWorkOptions>(ServiceLifetime.Singleton)
                    ;
 
             builder.Register(c => c.Resolve<IHttpClientWrapper>().HttpClient)

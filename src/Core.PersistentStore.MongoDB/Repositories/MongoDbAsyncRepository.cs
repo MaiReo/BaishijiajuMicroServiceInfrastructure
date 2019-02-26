@@ -50,7 +50,7 @@ namespace Core.DualCall.Repositories
         protected virtual bool IsMustHaveCityFilterEnabled => _currentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveCity) == true;
         protected virtual bool IsMayHaveCompanyFilterEnabled => _currentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveCompany) == true;
         protected virtual bool IsMustHaveCompanyFilterEnabled => _currentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveCompany) == true;
-        protected virtual bool IsMayHaveStoreFilterEnabled => _currentUnitOfWork?.IsFilterEnabled(DataFilters.MaytHaveStore) == true;
+        protected virtual bool IsMayHaveStoreFilterEnabled => _currentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveStore) == true;
         protected virtual bool IsMustHaveStoreFilterEnabled => _currentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveStore) == true;
 
         protected virtual string CurrentCityId => _coreSessionProvider?.Session?.City?.Id;
@@ -130,11 +130,11 @@ namespace Core.DualCall.Repositories
 
             if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
             {
-                query = query.Where(e => !IsMayHaveStoreFilterEnabled || CurrentCompanyId == default || ((IMayHaveStore)e).StoreId == CurrentStoreId);
+                query = query.Where(e => !IsMayHaveStoreFilterEnabled || CurrentStoreId == default || ((IMayHaveStore)e).StoreId == CurrentStoreId);
             }
             else if (typeof(IMustHaveStore).IsAssignableFrom(typeof(TEntity)))
             {
-                query = query.Where(e => !IsMustHaveStoreFilterEnabled || CurrentCompanyId == default || ((IMustHaveStore)e).StoreId == CurrentStoreId);
+                query = query.Where(e => !IsMustHaveStoreFilterEnabled || CurrentStoreId == default || ((IMustHaveStore)e).StoreId == CurrentStoreId);
             }
 
             return query;

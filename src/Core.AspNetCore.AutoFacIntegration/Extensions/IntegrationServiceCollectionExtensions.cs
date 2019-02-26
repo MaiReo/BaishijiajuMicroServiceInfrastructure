@@ -30,7 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
             mvcCoreBuilder.AddApiExplorer();
             mvcCoreBuilder.AddFormatterMappings();
             mvcCoreBuilder.AddDataAnnotations();
-            mvcCoreBuilder.SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            mvcCoreBuilder.SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
             /*
              *  Bug found:
              *  Caused by: Swashbuckle.AspNetCore.Swagger

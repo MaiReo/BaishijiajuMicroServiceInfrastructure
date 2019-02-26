@@ -1,22 +1,28 @@
 ﻿using System;
+using Core.Messages.Bus.Internal;
 
 namespace Core.Messages.Bus.Factories
 {
     public class IocMessageHandlerFactory : IMessageHandlerFactory
     {
-        public Type HandlerType { get; }
+        private readonly MessageHandlerDescriptor _descriptor;
 
-        public IocMessageHandlerFactory(Type handlerType)
+        public IocMessageHandlerFactory(MessageHandlerDescriptor descriptor)
         {
-            HandlerType = handlerType ?? throw new ArgumentNullException(nameof(handlerType));
+            _descriptor = descriptor;
         }
 
         public virtual IMessageHandler GetHandler(IMessageScope messageScope)
         {
-            return messageScope.Resolve(HandlerType) as IMessageHandler;
+            if (messageScope == null)
+            {
+                return null;
+            }
+            return messageScope.Resolve(_descriptor.HandlerType) as IMessageHandler;
         }
 
-        public virtual Type GetHandlerType() => HandlerType;
+        [Obsolete]
+        public virtual Type GetHandlerType() => _descriptor.HandlerType;
 
         public virtual void ReleaseHandler(IMessageScope messageScope, IMessageHandler handler)
         {
@@ -26,5 +32,7 @@ namespace Core.Messages.Bus.Factories
             }
             messageScope.Release(handler);
         }
+
+        public virtual MessageHandlerDescriptor GetHandlerDescriptor() => _descriptor;
     }
 }

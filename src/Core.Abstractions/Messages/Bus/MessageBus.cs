@@ -1,10 +1,13 @@
 ﻿using Core.Messages.Bus.Factories;
+using Core.Messages.Bus.Internal;
 using Core.Messages.Store;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
@@ -19,18 +22,21 @@ namespace Core.Messages.Bus
         private readonly IMessageHandlerFactoryStore _messageHandlerFactoryStore;
         private readonly IMessagePublisher _messagePublisher;
         private readonly IMessageScopeCreator _scopeCreator;
+        private readonly IMessageHandlerCaller _messageHandlerCaller;
         private readonly ILogger _logger;
 
         public MessageBus(
             IMessageHandlerFactoryStore messageHandlerFactoryStore,
             IMessagePublisher messagePublisher,
             IMessageScopeCreator scopeCreator,
+            IMessageHandlerCaller messageHandlerCaller = null,
             ILogger<MessageBus> logger = null)
         {
             _messageHandlerFactoryStore = messageHandlerFactoryStore;
             _messagePublisher = messagePublisher;
             _scopeCreator = scopeCreator;
-            _logger = (ILogger)logger ?? NullLogger.Instance; ;
+            _messageHandlerCaller = messageHandlerCaller ?? ReflectionMessageHandlerCaller.Instance;
+            _logger = (ILogger)logger ?? NullLogger.Instance;
         }
 
         /// <inheritdoc/>
@@ -69,27 +75,11 @@ namespace Core.Messages.Bus
             {
                 foreach (var handlerFactory in handlerFactories.MessageHandlerFactories)
                 {
-                    var handlerType = handlerFactory.GetHandlerType();
+                    var isCallSuccess = await _messageHandlerCaller.CallAsync(scope, handlerFactory, message, descriptor, exceptions);
 
-                    if (IsAsyncRichMessageHandler(handlerType))
+                    if (!isCallSuccess)
                     {
-                        await ProcessRichMessagecHandlingExceptionAsync(scope, handlerFactory, handlerFactories.MessageType, message, descriptor, exceptions);
-                    }
-                    else if (IsAsyncMessageHandler(handlerType))
-                    {
-                        await ProcessMessagecHandlingExceptionAsync(scope, handlerFactory, handlerFactories.MessageType, message, exceptions);
-                    }
-                    else if (IsRichMessageHandler(handlerType))
-                    {
-                        ProcessRichMessageHandlingException(scope, handlerFactory, handlerFactories.MessageType, message, descriptor, exceptions);
-                    }
-                    else if (IsMessageHandler(handlerType))
-                    {
-                        ProcessMessageHandlingException(scope, handlerFactory, handlerFactories.MessageType, message, exceptions);
-                    }
-                    else
-                    {
-                        var errorMessage = $"Event handler to register for event type {messageType.Name} does not implement IMessageHandler<{messageType.Name}> or IMessageEventHandler<{messageType.Name}> interface!";
+                        var errorMessage = $"Call message handler error";
                         exceptions.Add(new MessageBusException(errorMessage));
                     }
                 }
@@ -106,6 +96,7 @@ namespace Core.Messages.Bus
                 {
                     var baseMessageType = messageType.GetGenericTypeDefinition().MakeGenericType(baseArg);
                     var constructorArgs = ((IMessageWithInheritableGenericArgument)messageType).GetConstructorArgs();
+                    //TODO: Use Expression Tree instead / or do Inheritable Abstractions
                     var baseMessage = (IMessage)Activator.CreateInstance(baseMessageType, constructorArgs);
                     await ProcessMessageAsync(scope, baseMessageType, baseMessage, descriptor);
                 }
@@ -123,170 +114,7 @@ namespace Core.Messages.Bus
         }
 
 
-        private async ValueTask ProcessRichMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
-        {
-            var asyncEventHandler = asyncHandlerFactory.GetHandler(scope);
-
-            try
-            {
-                if (asyncEventHandler == null)
-                {
-                    throw new ArgumentNullException($"Registered async rich message handler for event type {messageType.Name} is null!");
-                }
-
-                var asyncHandlerType = typeof(IAsyncRichMessageHandler<>).MakeGenericType(messageType);
-
-                var method = asyncHandlerType.GetMethod(
-                    nameof(IAsyncRichMessageHandler<IMessage>.HandleMessageAsync),
-                    new[] { messageType, typeof(IRichMessageDescriptor) }
-                );
-
-                await (ValueTask)method.Invoke(asyncEventHandler, new object[] { message, descriptor });
-            }
-            catch (TargetInvocationException ex)
-            {
-                exceptions.Add(ex.InnerException);
-            }
-            catch (Exception ex)
-            {
-                exceptions.Add(ex);
-            }
-            finally
-            {
-                asyncHandlerFactory.ReleaseHandler(scope, asyncEventHandler);
-            }
-        }
-
-        private async ValueTask ProcessMessagecHandlingExceptionAsync(IMessageScope scope, IMessageHandlerFactory asyncHandlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
-        {
-            var asyncEventHandler = asyncHandlerFactory.GetHandler(scope);
-
-            try
-            {
-                if (asyncEventHandler == null)
-                {
-                    throw new ArgumentNullException($"Registered async message handler for event type {messageType.Name} is null!");
-                }
-
-                var asyncHandlerType = typeof(IAsyncMessageHandler<>).MakeGenericType(messageType);
-
-                var method = asyncHandlerType.GetMethod(
-                    nameof(IAsyncMessageHandler<IMessage>.HandleMessageAsync),
-                    new[] { messageType }
-                );
-
-                await (ValueTask)method.Invoke(asyncEventHandler, new object[] { message });
-            }
-            catch (TargetInvocationException ex)
-            {
-                exceptions.Add(ex.InnerException);
-            }
-            catch (Exception ex)
-            {
-                exceptions.Add(ex);
-            }
-            finally
-            {
-                asyncHandlerFactory.ReleaseHandler(scope, asyncEventHandler);
-            }
-        }
-
-        private void ProcessRichMessageHandlingException(IMessageScope scope, IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, IRichMessageDescriptor descriptor, List<Exception> exceptions)
-        {
-            var eventHandler = handlerFactory.GetHandler(scope);
-            try
-            {
-                if (eventHandler == null)
-                {
-                    throw new ArgumentNullException($"Registered rich message handler for event type {messageType.Name} is null!");
-                }
-
-                var handlerType = typeof(IRichMessageHandler<>).MakeGenericType(messageType);
-
-                var method = handlerType.GetMethod(
-                    nameof(IRichMessageHandler<IMessage>.HandleMessage),
-                    new[] { messageType, typeof(IRichMessageDescriptor) }
-                );
-
-                method.Invoke(eventHandler, new object[] { message, descriptor });
-            }
-            catch (TargetInvocationException ex)
-            {
-                exceptions.Add(ex.InnerException);
-            }
-            catch (Exception ex)
-            {
-                exceptions.Add(ex);
-            }
-            finally
-            {
-                handlerFactory.ReleaseHandler(scope, eventHandler);
-            }
-        }
-
-        private void ProcessMessageHandlingException(IMessageScope scope, IMessageHandlerFactory handlerFactory, Type messageType, IMessage message, List<Exception> exceptions)
-        {
-            var eventHandler = handlerFactory.GetHandler(scope);
-            try
-            {
-                if (eventHandler == null)
-                {
-                    throw new ArgumentNullException($"Registered message handler for event type {messageType.Name} is null!");
-                }
-
-                var handlerType = typeof(IMessageHandler<>).MakeGenericType(messageType);
-
-                var method = handlerType.GetMethod(
-                    nameof(IMessageHandler<IMessage>.HandleMessage),
-                    new[] { messageType }
-                );
-
-                method.Invoke(eventHandler, new object[] { message });
-            }
-            catch (TargetInvocationException ex)
-            {
-                exceptions.Add(ex.InnerException);
-            }
-            catch (Exception ex)
-            {
-                exceptions.Add(ex);
-            }
-            finally
-            {
-                handlerFactory.ReleaseHandler(scope, eventHandler);
-            }
-        }
-
-
-
-
-        private bool IsMessageHandler(Type handlerType)
-        {
-            return handlerType.GetInterfaces()
-                .Where(i => i.IsGenericType)
-                .Any(i => i.GetGenericTypeDefinition() == typeof(IMessageHandler<>));
-        }
-
-        private bool IsRichMessageHandler(Type handlerType)
-        {
-            return handlerType.GetInterfaces()
-                .Where(i => i.IsGenericType)
-                .Any(i => i.GetGenericTypeDefinition() == typeof(IRichMessageHandler<>));
-        }
-
-        private bool IsAsyncMessageHandler(Type handlerType)
-        {
-            return handlerType.GetInterfaces()
-                .Where(i => i.IsGenericType)
-                .Any(i => i.GetGenericTypeDefinition() == typeof(IAsyncMessageHandler<>));
-        }
-
-        private bool IsAsyncRichMessageHandler(Type handlerType)
-        {
-            return handlerType.GetInterfaces()
-                .Where(i => i.IsGenericType)
-                .Any(i => i.GetGenericTypeDefinition() == typeof(IAsyncRichMessageHandler<>));
-        }
+        
 
         public IEnumerable<Type> GetAllHandledMessageTypes()
         {

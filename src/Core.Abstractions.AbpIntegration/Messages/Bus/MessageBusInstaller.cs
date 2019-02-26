@@ -4,18 +4,13 @@ using Castle.MicroKernel.Registration;
 using Castle.MicroKernel.SubSystems.Configuration;
 using Castle.Windsor;
 using Core.Messages.Bus.Factories;
+using Core.Messages.Bus.Internal;
 
 namespace Core.Messages.Bus
 {
     internal class MessageBusInstaller : IWindsorInstaller
     {
-        private readonly IIocResolver _iocResolver;
-        private IMessageHandlerFactoryStore  _messageHandlerFactoryStore;
-
-        public MessageBusInstaller(IIocResolver iocResolver)
-        {
-            _iocResolver = iocResolver;
-        }
+        private IMessageHandlerFactoryStore _messageHandlerFactoryStore;
 
         public void Install(IWindsorContainer container, IConfigurationStore store)
         {
@@ -24,12 +19,16 @@ namespace Core.Messages.Bus
                 .For<IMessageHandlerFactoryStore, MessageHandlerFactoryStore>()
                 .ImplementedBy<MessageHandlerFactoryStore>()
                 .LifestyleSingleton(),
+                Component
+                .For<IMessageHandlerCaller,ExpressionTreeMessageHandlerCaller>()
+                .ImplementedBy<ExpressionTreeMessageHandlerCaller>()
+                .LifestyleSingleton(),
                  Component
                 .For<IMessageBus, MessageBus>()
                 .ImplementedBy<MessageBus>()
                 .LifestyleTransient()
             );
-            
+
             _messageHandlerFactoryStore = container.Resolve<IMessageHandlerFactoryStore>();
             container.Kernel.ComponentRegistered += RegisterMessageHandler;
         }
@@ -39,26 +38,9 @@ namespace Core.Messages.Bus
             /* This code checks if registering component implements any IMessageHandler<in TMessage> interface, if yes,
              * gets all message handler interfaces and registers type to Message Bus for each handling message.
              */
-            if (!typeof(IMessageHandler).IsAssignableFrom(handler.ComponentModel.Implementation))
+            foreach (var descriptor in handler.ComponentModel.Implementation.GetMessageHandlerDescriptors(handler.ComponentModel.Services))
             {
-                return;
-            }
-            var interfaces = handler.ComponentModel.Implementation.GetInterfaces();
-            foreach (var @interface in interfaces)
-            {
-                if (!typeof(IMessageHandler).IsAssignableFrom(@interface))
-                {
-                    continue;
-                }
-                if (!@interface.IsGenericType)
-                {
-                    continue;
-                }
-                var genericArgs = @interface.GetGenericArguments();
-                if (genericArgs.Length == 1)
-                {
-                    _messageHandlerFactoryStore.Register(genericArgs[0], new IocMessageHandlerFactory(handler.ComponentModel.Implementation));
-                }
+                _messageHandlerFactoryStore.Register(descriptor.MessageType, new IocMessageHandlerFactory(descriptor));
             }
         }
     }

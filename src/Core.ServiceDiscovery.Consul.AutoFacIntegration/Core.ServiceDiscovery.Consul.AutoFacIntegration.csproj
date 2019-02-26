@@ -1,16 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\..\target-std.props"></Import>
   <Import Project="..\..\common.props"></Import>
+  <Import Project="..\..\sign.props"></Import>
+  
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>Core.ServiceDiscovery</RootNamespace>
     <AssemblyName>Core.ServiceDiscovery.Consul.AutoFacIntegration</AssemblyName>
     <PackageId>Baishijiaju.MicroService.Infrastructure.ServiceDiscovery.Consul.AutoFacIntegration</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Autofac" Version="4.8.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.1.3" />
+    <PackageReference Include="Autofac" Version="4.9.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

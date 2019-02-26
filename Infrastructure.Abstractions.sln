@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28315.86
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{8F80FAF3-2D79-44A6-BA3A-71D53EE081C0}"
 EndProject
@@ -38,6 +38,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C95FFEA8-08CA-44E0-A1DA-31F04246544A}"
 	ProjectSection(SolutionItems) = preProject
 		common.props = common.props
+		global.json = global.json
+		meta.props = meta.props
+		sign.props = sign.props
+		target-app.props = target-app.props
+		target-std.props = target-std.props
+		version.props = version.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.AspNetCore.AbpIntegration", "src\Core.AspNetCore.AbpIntegration\Core.AspNetCore.AbpIntegration.csproj", "{03AFE8F4-D91D-4368-8625-0DD940144EE4}"
