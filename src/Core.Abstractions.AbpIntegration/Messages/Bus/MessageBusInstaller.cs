@@ -19,6 +19,10 @@ namespace Core.Messages.Bus
                 .For<IMessageHandlerFactoryStore, MessageHandlerFactoryStore>()
                 .ImplementedBy<MessageHandlerFactoryStore>()
                 .LifestyleSingleton(),
+                Component
+                .For<IMessageHandlerCaller,ExpressionTreeMessageHandlerCaller>()
+                .ImplementedBy<ExpressionTreeMessageHandlerCaller>()
+                .LifestyleSingleton(),
                  Component
                 .For<IMessageBus, MessageBus>()
                 .ImplementedBy<MessageBus>()

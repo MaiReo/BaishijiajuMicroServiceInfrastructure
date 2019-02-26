@@ -5,6 +5,7 @@ using Castle.MicroKernel.Registration;
 using Core.Abstractions.Tests.Fakes;
 using Core.Messages;
 using Core.Messages.Bus;
+using Core.Messages.Store;
 using Core.Session;
 using System.Net.Http;
 
@@ -30,6 +31,18 @@ namespace Core.Abstractions.Tests
                     .For<HttpMessageHandler>()
                     .Instance(FakeHttpMessageHandler.Instance)
                     .NamedAutomatically(nameof(FakeHttpMessageHandler))
+                    .IsDefault(),
+
+                    Component
+                    .For<IConsumedMessageStorageProvider>()
+                    .ImplementedBy<FakeConsumedMessageStorageProvider>()
+                    .NamedAutomatically(nameof(FakeConsumedMessageStorageProvider))
+                    .IsDefault(),
+
+                     Component
+                    .For<IPublishedMessageStorageProvider>()
+                    .ImplementedBy<FakePublishedMessageStorageProvider>()
+                    .NamedAutomatically(nameof(FakePublishedMessageStorageProvider))
                     .IsDefault(),
 
                     Component

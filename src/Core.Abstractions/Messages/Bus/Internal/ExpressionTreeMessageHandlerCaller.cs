@@ -68,8 +68,8 @@ namespace Core.Messages.Bus.Internal
                 return @delegate;
             }
 
-            var handlerIfaceType = handlerDescriptor.IsRich ? typeof(IAsyncRichMessageHandler<>).MakeGenericType(handlerDescriptor.MessageType)
-                                          : typeof(IAsyncMessageHandler<>).MakeGenericType(handlerDescriptor.MessageType);
+            var handlerIfaceType = handlerDescriptor.IsRich ? typeof(IRichMessageHandler<>).MakeGenericType(handlerDescriptor.MessageType)
+                                          : typeof(IMessageHandler<>).MakeGenericType(handlerDescriptor.MessageType);
 
             @delegate = _syncHandlerCallCache.GetOrAdd(handlerIfaceType, (ifaceType) =>
             {
