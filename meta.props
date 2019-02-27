@@ -6,7 +6,8 @@
     <Description>mesesage queue, service discovery, tenanty-like EF Core query filters. auditing entities, generic repository.</Description>
     <Copyright>Baishijiaju</Copyright>
     <PackageProjectUrl>https://github.com/MaiReo/BaishijiajuMicroServiceInfrastructure</PackageProjectUrl>
-    <PackageLicense>https://raw.githubusercontent.com/MaiReo/BaishijiajuMicroServiceInfrastructure/master/LICENSE</PackageLicense>
+    <PackageLicenseUrl>https://raw.githubusercontent.com/MaiReo/BaishijiajuMicroServiceInfrastructure/master/LICENSE</PackageLicenseUrl>
+    <RepositoryUrl>https://github.com/MaiReo/BaishijiajuMicroServiceInfrastructure.git</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
   </PropertyGroup>
 </Project>
