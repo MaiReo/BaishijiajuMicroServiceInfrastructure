@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Core.PersistentStore
 {
-    public interface IMayHaveCompany : IMayHaveCompanyId
+    public interface IMayHaveCompanyId
     {
-        string CompanyName { get; set; }
+        Guid? CompanyId { get; set; }
     }
 }

@@ -48,7 +48,7 @@ namespace Core.PersistentStore
         protected virtual bool IsMustHaveBrokerFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveBroker) == true;
 
 
-        private static MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
+        private static readonly MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
 
         public CorePersistentStoreDbContext(DbContextOptions options) : base(options)
         {
@@ -140,38 +140,49 @@ namespace Core.PersistentStore
 
         private void PerformMayHaveCompany(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompanyId haveCompanyIdEntity)
             {
-                if (entity.CompanyId == default)
+                if (haveCompanyIdEntity.CompanyId == default)
                 {
-                    entity.CompanyId = CurrentCompanyId;
+                    haveCompanyIdEntity.CompanyId = CurrentCompanyId;
                 }
-                if (string.IsNullOrWhiteSpace(entity.CompanyName))
+            }
+
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveCompany haveCompanyEntity)
+            {
+                if (string.IsNullOrWhiteSpace(haveCompanyEntity.CompanyName))
                 {
-                    entity.CompanyName = CurrentCompanyName;
+                    haveCompanyEntity.CompanyName = CurrentCompanyName;
                 }
             }
         }
 
         private void PerformMustHaveCompany(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMustHaveCompany entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
             {
-                if (entity.CompanyId == default)
+                if (entry.Entity is IMustHaveCompanyId mustHaveCompanyIdEntity)
                 {
-                    entity.CompanyId = CurrentCompanyId.GetValueOrDefault();
+                    if (mustHaveCompanyIdEntity.CompanyId == default)
+                    {
+                        mustHaveCompanyIdEntity.CompanyId = CurrentCompanyId.GetValueOrDefault();
+                    }
+                    if (mustHaveCompanyIdEntity.CompanyId == default)
+                    {
+                        throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyId Required but not provided.");
+                    }
                 }
-                if (string.IsNullOrWhiteSpace(entity.CompanyName))
+
+                if (entry.Entity is IMustHaveCompany mustHaveCompanyEntity)
                 {
-                    entity.CompanyName = CurrentCompanyName;
-                }
-                if (entity.CompanyId == default)
-                {
-                    throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyId Required but not provided.");
-                }
-                if (string.IsNullOrWhiteSpace(entity.CompanyName))
-                {
-                    throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyName Required but not provided.");
+                    if (string.IsNullOrWhiteSpace(mustHaveCompanyEntity.CompanyName))
+                    {
+                        mustHaveCompanyEntity.CompanyName = CurrentCompanyName;
+                    }
+                    if (string.IsNullOrWhiteSpace(mustHaveCompanyEntity.CompanyName))
+                    {
+                        throw new CompanyRequiredException(entry.Entity.GetType(), "CompanyName Required but not provided.");
+                    }
                 }
             }
         }
@@ -260,7 +271,7 @@ namespace Core.PersistentStore
         protected void ConfigureGlobalFilters<TEntity>(ModelBuilder modelBuilder, IMutableEntityType entityType)
             where TEntity : class
         {
-            if (entityType.BaseType == null && ShouldFilterEntity<TEntity>(entityType))
+            if (entityType.BaseType == null && ShouldDoFilteringEntity<TEntity>(entityType))
             {
                 var filterExpression = CreateFilterExpression<TEntity>();
                 if (filterExpression != null)
@@ -270,7 +281,7 @@ namespace Core.PersistentStore
             }
         }
 
-        protected virtual bool ShouldFilterEntity<TEntity>(IMutableEntityType entityType) where TEntity : class
+        protected virtual bool ShouldDoFilteringEntity<TEntity>(IMutableEntityType entityType) where TEntity : class
         {
             if (typeof(ISoftDelete).IsAssignableFrom(typeof(TEntity)))
             {
@@ -285,7 +296,15 @@ namespace Core.PersistentStore
             {
                 return true;
             }
+            if (typeof(IMayHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
             if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+            if (typeof(IMustHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
@@ -337,14 +356,14 @@ namespace Core.PersistentStore
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
-            if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMayHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompany)e).CompanyId == CurrentCompanyId || (((IMayHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMayHaveCompany)e).CompanyId == CurrentCompanyId) == IsMayHaveCompanyFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompanyId)e).CompanyId == CurrentCompanyId || (((IMayHaveCompanyId)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMayHaveCompany)e).CompanyId == CurrentCompanyId) == IsMayHaveCompanyFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
-            if (typeof(IMustHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMustHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompany)e).CompanyId == CurrentCompanyId || (((IMustHaveCompany)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMustHaveCompany)e).CompanyId == CurrentCompanyId) == IsMustHaveCompanyFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompanyId)e).CompanyId == CurrentCompanyId || (((IMustHaveCompanyId)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMustHaveCompany)e).CompanyId == CurrentCompanyId) == IsMustHaveCompanyFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
