@@ -1,17 +1,19 @@
 ﻿namespace Core.Session
 {
+
     public interface ICoreSession
     {
-        SessionCity City { get; }
+        ICoreSessionContainer<string> City { get; }
 
-        SessionCompany Company { get; }
+        ICoreSessionContainer<System.Guid?, string> Company { get; }
 
-        SessionStore Store { get; }
+        [System.Obsolete("Use Organization.Store instead of this one")]
+        ICoreSessionContainer<System.Guid?, string> Store { get; }
 
-        SessionBroker Broker { get; }
+        ICoreSessionContainer<string, string> Broker { get; }
 
-        SessionOrganization Organization { get; }
+        ISessionOrganization Organization { get; }
 
-        SessionUser User { get; }
+        ICoreSessionContainer<string, string> User { get; }
     }
 }

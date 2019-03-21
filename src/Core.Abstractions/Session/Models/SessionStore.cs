@@ -4,18 +4,13 @@ using System.Text;
 
 namespace Core.Session
 {
-    public class SessionStore
+    internal class SessionStore : CoreSessionContainer<Guid?>
     {
         public SessionStore()
         {
         }
-        public SessionStore(Guid? id, string name = default) : this()
+        public SessionStore(Guid? id, string name = default) : base(id, name)
         {
-            this.Id = id;
-            this.Name = name;
         }
-
-        public Guid? Id { get; }
-        public string Name { get; }
     }
 }

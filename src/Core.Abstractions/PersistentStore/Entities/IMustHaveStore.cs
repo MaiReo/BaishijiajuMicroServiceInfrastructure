@@ -1,11 +1,7 @@
-using System;
-
 namespace Core.PersistentStore
 {
-    public interface IMustHaveStore
+    public interface IMustHaveStore : IMustHaveStoreId
     {
-        Guid StoreId { get; set; }
-
         string StoreName { get; set; }
     }
 }

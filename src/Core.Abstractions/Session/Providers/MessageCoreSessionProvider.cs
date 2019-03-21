@@ -19,10 +19,10 @@ namespace Core.Session.Providers
 
         private ICoreSession GetSession()
         {
-            if (_message is IMessageWithSession withSessionMessage)
-            {
-                return ParseSession(withSessionMessage);
-            }
+            // if (_message is IMessageWithSession withSessionMessage)
+            // {
+            //     return ParseSession(withSessionMessage);
+            // }
             return ParseSession(MessageDescriptor);
         }
 
@@ -36,26 +36,41 @@ namespace Core.Session.Providers
             messageDescriptor.Headers.TryGetValue(SessionConsts.CityId, out var city);
             messageDescriptor.Headers.TryGetValue(SessionConsts.CompanyId, out var companyId);
             messageDescriptor.Headers.TryGetValue(SessionConsts.CompanyName, out var companyName);
+
+            messageDescriptor.Headers.TryGetValue(SessionConsts.DepartmentId, out var departmentId);
+            messageDescriptor.Headers.TryGetValue(SessionConsts.DepartmentName, out var departmentName);
+
+            messageDescriptor.Headers.TryGetValue(SessionConsts.BigRegionId, out var bigRegionId);
+            messageDescriptor.Headers.TryGetValue(SessionConsts.BigRegionName, out var bigRegionName);
+
+            messageDescriptor.Headers.TryGetValue(SessionConsts.RegionId, out var regionId);
+            messageDescriptor.Headers.TryGetValue(SessionConsts.RegionName, out var regionName);
+
             messageDescriptor.Headers.TryGetValue(SessionConsts.StoreId, out var storeId);
             messageDescriptor.Headers.TryGetValue(SessionConsts.StoreName, out var storeName);
+
+            messageDescriptor.Headers.TryGetValue(SessionConsts.GroupId, out var groupId);
+            messageDescriptor.Headers.TryGetValue(SessionConsts.GroupName, out var groupName);
+
             messageDescriptor.Headers.TryGetValue(SessionConsts.BrokerId, out var brokerId);
             messageDescriptor.Headers.TryGetValue(SessionConsts.BrokerName, out var brokerName);
-            messageDescriptor.Headers.TryGetValue(SessionConsts.OrganizationId, out var organizationId);
-            messageDescriptor.Headers.TryGetValue(SessionConsts.OrganizationName, out var organizationName);
+
             messageDescriptor.Headers.TryGetValue(SessionConsts.CurrentUserId, out var currentUserId);
             messageDescriptor.Headers.TryGetValue(SessionConsts.CurrentUserName, out var currentUserName);
             var session = new CoreSession(
                 TryConvertFromBytes(city as byte[]),
-                TryConvertFromBytes(companyId as byte[]).AsGuidOrNull(),
-                TryUriDecode(TryConvertFromBytes(companyName as byte[])),
-                TryConvertFromBytes(storeId as byte[]).AsGuidOrNull(),
-                TryUriDecode(TryConvertFromBytes(storeName as byte[])),
-                TryConvertFromBytes(brokerId as byte[]),
-                TryUriDecode(TryConvertFromBytes(brokerName as byte[])),
-                TryConvertFromBytes(organizationId as byte[]),
-                TryUriDecode(TryConvertFromBytes(organizationName as byte[])),
-                TryConvertFromBytes(currentUserId as byte[]),
-                TryUriDecode(TryConvertFromBytes(currentUserName as byte[])));
+
+                TryConvertFromBytes(companyId as byte[]).AsGuidOrNull(), TryUriDecode(TryConvertFromBytes(companyName as byte[])),
+
+                TryConvertFromBytes(departmentId as byte[]).AsGuidOrNull(), TryUriDecode(TryConvertFromBytes(departmentName as byte[])),
+                TryConvertFromBytes(bigRegionId as byte[]).AsGuidOrNull(), TryUriDecode(TryConvertFromBytes(bigRegionName as byte[])),
+                TryConvertFromBytes(regionId as byte[]).AsGuidOrNull(), TryUriDecode(TryConvertFromBytes(regionName as byte[])),
+                TryConvertFromBytes(storeId as byte[]).AsGuidOrNull(), TryUriDecode(TryConvertFromBytes(storeName as byte[])),
+                TryConvertFromBytes(groupId as byte[]).AsGuidOrNull(), TryUriDecode(TryConvertFromBytes(groupName as byte[])),
+
+                TryConvertFromBytes(brokerId as byte[]), TryUriDecode(TryConvertFromBytes(brokerName as byte[])),
+
+                TryConvertFromBytes(currentUserId as byte[]), TryUriDecode(TryConvertFromBytes(currentUserName as byte[])));
 
             return session;
         }
@@ -94,7 +109,7 @@ namespace Core.Session.Providers
             return null;
         }
 
-
+        [System.Obsolete]
         private ICoreSession ParseSession(IMessageWithSession withSessionMessage)
         {
 

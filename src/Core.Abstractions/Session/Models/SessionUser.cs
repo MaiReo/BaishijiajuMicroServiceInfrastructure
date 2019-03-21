@@ -1,18 +1,15 @@
 ﻿namespace Core.Session
 {
-    public class SessionUser
+
+    [System.Obsolete]
+    internal class SessionUser : CoreSessionContainer<string>
     {
         public SessionUser()
         {
         }
 
-        public SessionUser(string id, string name = default) : this()
+        public SessionUser(string id, string name = default) : base(id, name)
         {
-            Id = id;
-            Name = name;
         }
-        public string Id { get; protected set; }
-
-        public string Name { get; protected set; }
     }
 }

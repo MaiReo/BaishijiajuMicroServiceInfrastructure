@@ -10,33 +10,61 @@ namespace Core.Session
         {
         }
 
-        public CoreSession(string cityId, 
-            Guid? companyId, string companyName,
-            Guid? storeId, string storeName, 
-            string brokerId, string brokerName,
-            string organizationId, string organizationName,
-            string currentUserId, string currentUserName)
+        [Obsolete]
+        public CoreSession(string cityId,
+                    Guid? companyId, string companyName,
+                    Guid? storeId, string storeName,
+                    string brokerId, string brokerName,
+                    string organizationId, string organizationName,
+                    string currentUserId, string currentUserName)
         {
             City = new SessionCity(cityId);
             Company = new SessionCompany(companyId, companyName);
-            Store = new SessionStore(storeId, storeName);
             Broker = new SessionBroker(brokerId, brokerName);
-            Organization = new SessionOrganization(organizationId, organizationName);
+            Organization = new SessionOrganization(
+                null, null,
+                null, null,
+                null, null,
+                storeId, storeName,
+                null, null);
             User = new SessionUser(currentUserId, currentUserName);
         }
 
-        public SessionCity City { get; }
+        public CoreSession(string cityId,
+            Guid? companyId, string companyName,
+            Guid? departmentId, string departmentName,
+            Guid? bigRegionId, string bigRegionName,
+            Guid? regionId, string regionName,
+            Guid? storeId, string storeName,
+            Guid? groupId, string groupName,
+            string brokerId, string brokerName,
+            string currentUserId, string currentUserName)
+        {
 
-        public SessionCompany Company { get; }
+            City = CoreSessionContainer.Create(cityId);
+            Company = CoreSessionContainer.Create(companyId, companyName);
+            Broker = CoreSessionContainer.Create(brokerId, brokerName);
+            Organization = new SessionOrganization(
+             departmentId, departmentName,
+             bigRegionId, bigRegionName,
+             regionId, regionName,
+             storeId, storeName,
+             groupId, groupName);
+            User = CoreSessionContainer.Create(currentUserId, currentUserName);
+        }
 
-        public SessionStore Store { get; }
+        public ICoreSessionContainer<string> City { get; }
 
-        public SessionBroker Broker { get; }
+        public ICoreSessionContainer<Guid?, string> Company { get; }
 
-        public SessionOrganization Organization { get; }
+        public ICoreSessionContainer<Guid?, string> Store => Organization?.Store;
 
-        public SessionUser User { get; }
+        public ICoreSessionContainer<string, string> Broker { get; }
 
-        
+        public ISessionOrganization Organization { get; }
+
+        public ICoreSessionContainer<string, string> User { get; }
+
+
     }
 }

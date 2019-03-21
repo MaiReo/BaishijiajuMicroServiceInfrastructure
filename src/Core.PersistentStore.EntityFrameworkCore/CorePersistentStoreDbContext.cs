@@ -30,9 +30,25 @@ namespace Core.PersistentStore
 
         protected virtual string CurrentCompanyName => SessionProvider?.Session?.Company?.Name;
 
-        protected virtual Guid? CurrentStoreId => SessionProvider?.Session?.Store?.Id;
+        protected virtual Guid? CurrentDepartmentId => SessionProvider?.Session?.Organization?.Department?.Id;
 
-        protected virtual string CurrentStoreName => SessionProvider?.Session?.Store?.Name;
+        protected virtual string CurrentDepartmentName => SessionProvider?.Session?.Organization?.Department?.Name;
+
+        protected virtual Guid? CurrentBigRegionId => SessionProvider?.Session?.Organization?.BigRegion?.Id;
+
+        protected virtual string CurrentBigRegionName => SessionProvider?.Session?.Organization?.BigRegion?.Name;
+
+        protected virtual Guid? CurrentRegionId => SessionProvider?.Session?.Organization?.Region?.Id;
+
+        protected virtual string CurrentRegionName => SessionProvider?.Session?.Organization?.Region?.Name;
+
+        protected virtual Guid? CurrentStoreId => SessionProvider?.Session?.Organization?.Store?.Id;
+
+        protected virtual string CurrentStoreName => SessionProvider?.Session?.Organization?.Store?.Name;
+
+        protected virtual Guid? CurrentStoreGroupId => SessionProvider?.Session?.Organization?.Group?.Id;
+
+        protected virtual string CurrentStoreGroupName => SessionProvider?.Session?.Organization?.Group?.Name;
 
         protected virtual string CurrentBrokerId => SessionProvider?.Session?.Broker?.Id;
 
@@ -46,6 +62,9 @@ namespace Core.PersistentStore
         protected virtual bool IsMayHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveStore) == true;
         protected virtual bool IsMustHaveStoreFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveStore) == true;
         protected virtual bool IsMustHaveBrokerFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveBroker) == true;
+
+        protected virtual bool IsMayHaveStoreGroupFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MayHaveStoreGroup) == true;
+        protected virtual bool IsMustHaveStoreGroupFilterEnabled => CurrentUnitOfWork?.IsFilterEnabled(DataFilters.MustHaveStoreGroup) == true;
 
 
         private static readonly MethodInfo ConfigureGlobalFiltersMethodInfo = typeof(CorePersistentStoreDbContext).GetMethod(nameof(ConfigureGlobalFilters), BindingFlags.Instance | BindingFlags.NonPublic);
@@ -84,7 +103,7 @@ namespace Core.PersistentStore
                 {
                     PerformCity(entry);
                     PerformCompany(entry);
-                    PerformStore(entry);
+                    PerformOrganization(entry);
                     PerformBroker(entry);
                     PerformAuditing(entry);
                 }
@@ -187,45 +206,160 @@ namespace Core.PersistentStore
             }
         }
 
+        private void PerformOrganization(EntityEntry entry)
+        {
+            PerformDepartment(entry);
+            PerformBigRegion(entry);
+            PerformRegion(entry);
+            PerformStore(entry);
+            PerformStoreGroup(entry);
+        }
+
+
+        private void PerformDepartment(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveDepartmentId entity)
+            {
+                if (entity.DepartmentId == default)
+                {
+                    entity.DepartmentId = CurrentDepartmentId;
+                }
+            }
+        }
+        private void PerformBigRegion(EntityEntry entry)
+        {
+
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveBigRegionId entity)
+            {
+                if (entity.BigRegionId == default)
+                {
+                    entity.BigRegionId = CurrentBigRegionId;
+                }
+            }
+        }
+        private void PerformRegion(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveRegionId entity)
+            {
+                if (entity.RegionId == default)
+                {
+                    entity.RegionId = CurrentRegionId;
+                }
+            }
+        }
+
+
         private void PerformStore(EntityEntry entry)
         {
             PerformMayHaveStore(entry);
             PerformMustHaveStore(entry);
         }
+
         private void PerformMayHaveStore(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveStore entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
             {
-                if (entity.StoreId == default)
+                if (entry.Entity is IMayHaveStoreId haveIdEntity)
                 {
-                    entity.StoreId = CurrentStoreId;
+                    if (haveIdEntity.StoreId == default)
+                    {
+                        haveIdEntity.StoreId = CurrentStoreId;
+                    }
+
                 }
-                if (string.IsNullOrWhiteSpace(entity.StoreName))
+                if (entry.Entity is IMayHaveStore entity)
                 {
-                    entity.StoreName = CurrentStoreName;
+                    if (string.IsNullOrWhiteSpace(entity.StoreName))
+                    {
+                        entity.StoreName = CurrentStoreName;
+                    }
                 }
             }
         }
         private void PerformMustHaveStore(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMustHaveStore entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
             {
-                if (entity.StoreId == default)
+                if (entry.Entity is IMustHaveStoreId haveIdEntity)
                 {
-                    entity.StoreId = CurrentStoreId.GetValueOrDefault();
+                    if (haveIdEntity.StoreId == default)
+                    {
+                        haveIdEntity.StoreId = CurrentStoreId.GetValueOrDefault();
+                    }
+                    if (haveIdEntity.StoreId == default)
+                    {
+                        throw new StoreRequiredException(entry.Entity.GetType(), "StoreId required but not provided.");
+                    }
                 }
-                if (string.IsNullOrWhiteSpace(entity.StoreName))
+
+                if (entry.Entity is IMustHaveStore entity)
                 {
-                    entity.StoreName = CurrentStoreName;
+                    if (string.IsNullOrWhiteSpace(entity.StoreName))
+                    {
+                        entity.StoreName = CurrentStoreName;
+                    }
+                    if (string.IsNullOrWhiteSpace(entity.StoreName))
+                    {
+                        throw new StoreRequiredException(entry.Entity.GetType(), "StoreName required but not provided.");
+                    }
                 }
-                if (entity.StoreId == default)
+
+            }
+        }
+        private void PerformStoreGroup(EntityEntry entry)
+        {
+            PerformMayHaveStoreGroup(entry);
+            PerformMustHaveStoreGroup(entry);
+        }
+
+        private void PerformMayHaveStoreGroup(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
+            {
+                if (entry.Entity is IMayHaveStoreGroupId haveIdEntity)
                 {
-                    throw new StoreRequiredException(entry.Entity.GetType(), "StoreId Required but not provided.");
+                    if (haveIdEntity.GroupId == default)
+                    {
+                        haveIdEntity.GroupId = CurrentStoreGroupId;
+                    }
                 }
-                if (string.IsNullOrWhiteSpace(entity.StoreName))
+                if (entry.Entity is IMayHaveStoreGroup entity)
                 {
-                    throw new StoreRequiredException(entry.Entity.GetType(), "StoreName Required but not provided.");
+                    if (string.IsNullOrWhiteSpace(entity.GroupName))
+                    {
+                        entity.GroupName = CurrentStoreGroupName;
+                    }
                 }
+            }
+        }
+        private void PerformMustHaveStoreGroup(EntityEntry entry)
+        {
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
+            {
+                if (entry.Entity is IMustHaveStoreGroupId haveIdEntity)
+                {
+                    if (haveIdEntity.GroupId == default)
+                    {
+                        haveIdEntity.GroupId = CurrentStoreGroupId.GetValueOrDefault();
+                    }
+                    if (haveIdEntity.GroupId == default)
+                    {
+                        throw new StoreGroupRequiredException(entry.Entity.GetType(), "GroupId required but not provided.");
+                    }
+                }
+
+                if (entry.Entity is IMustHaveStoreGroup entity)
+                {
+                    if (string.IsNullOrWhiteSpace(entity.GroupName))
+                    {
+                        entity.GroupName = CurrentStoreGroupName;
+                    }
+                    if (string.IsNullOrWhiteSpace(entity.GroupName))
+                    {
+                        throw new StoreGroupRequiredException(entry.Entity.GetType(), "GroupName required but not provided.");
+                    }
+                }
+
             }
         }
 
@@ -300,27 +434,27 @@ namespace Core.PersistentStore
             {
                 return true;
             }
-            if (typeof(IMayHaveCompany).IsAssignableFrom(typeof(TEntity)))
-            {
-                return true;
-            }
             if (typeof(IMustHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
-            if (typeof(IMustHaveCompany).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMayHaveStoreId).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
-            if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
-            {
-                return true;
-            }
-            if (typeof(IMustHaveStore).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMustHaveStoreId).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
             if (typeof(IMustHaveBroker).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+            if (typeof(IMayHaveStoreGroupId).IsAssignableFrom(typeof(TEntity)))
+            {
+                return true;
+            }
+            if (typeof(IMustHaveStoreGroupId).IsAssignableFrom(typeof(TEntity)))
             {
                 return true;
             }
@@ -367,15 +501,26 @@ namespace Core.PersistentStore
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
-            if (typeof(IMayHaveStore).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMayHaveStoreId).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveStore)e).StoreId == CurrentStoreId || (((IMayHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null) || (((IMayHaveStore)e).StoreId == CurrentStoreId) == IsMayHaveStoreFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveStoreId)e).StoreId == CurrentStoreId || (((IMayHaveStoreId)e).StoreId != CurrentStoreId && CurrentStoreId == null) || (((IMayHaveStoreId)e).StoreId == CurrentStoreId) == IsMayHaveStoreFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
-            if (typeof(IMustHaveStore).IsAssignableFrom(typeof(TEntity)))
+            if (typeof(IMustHaveStoreId).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveStore)e).StoreId == CurrentStoreId || (((IMustHaveStore)e).StoreId != CurrentStoreId && CurrentStoreId == null) || (((IMustHaveStore)e).StoreId == CurrentStoreId)==IsMustHaveStoreFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveStoreId)e).StoreId == CurrentStoreId || (((IMustHaveStoreId)e).StoreId != CurrentStoreId && CurrentStoreId == null) || (((IMustHaveStoreId)e).StoreId == CurrentStoreId) == IsMustHaveStoreFilterEnabled;
+                expression = expression.AndAlsoOrDefault(filter);
+            }
+
+            if (typeof(IMayHaveStoreGroupId).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveStoreGroupId)e).GroupId == CurrentStoreGroupId || (((IMayHaveStoreGroupId)e).GroupId != CurrentStoreGroupId && CurrentStoreGroupId == null) || (((IMayHaveStoreGroupId)e).GroupId == CurrentStoreGroupId) == IsMustHaveStoreGroupFilterEnabled;
+                expression = expression.AndAlsoOrDefault(filter);
+            }
+            if (typeof(IMustHaveStoreGroupId).IsAssignableFrom(typeof(TEntity)))
+            {
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveStoreGroupId)e).GroupId == CurrentStoreGroupId || (((IMustHaveStoreGroupId)e).GroupId != CurrentStoreGroupId && CurrentStoreGroupId == null) || (((IMustHaveStoreGroupId)e).GroupId == CurrentStoreGroupId) == IsMustHaveStoreGroupFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 

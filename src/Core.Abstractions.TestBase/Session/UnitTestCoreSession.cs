@@ -5,31 +5,31 @@ namespace Core.TestBase
 {
     public class UnitTestCoreSession : ICoreSession
     {
-        public UnitTestCoreSession(string cityId,
-            SessionCompany company,
-            SessionUser user,
-            SessionOrganization organization = default,
-            SessionStore store = default,
-            SessionBroker broker = default)
+        public UnitTestCoreSession(
+            string cityId,
+            ICoreSessionContainer<Guid?, string> company,
+            ICoreSessionContainer<string, string> user,
+            ISessionOrganization organization = default,
+            ICoreSessionContainer<string, string> broker = default)
         {
-            City = new SessionCity(cityId);
+            City = CoreSessionContainer.Create(cityId);
             Company = company;
-            User = user ?? new SessionUser();
-            Organization = organization;
-            Store = store;
+            User = user ?? CoreSessionContainer.Create(default(string), default(string));
+            Organization = organization ?? new SessionOrganization();
             Broker = broker;
         }
 
-        public SessionCity City { get; }
+        public ICoreSessionContainer<string> City { get; }
 
-        public SessionCompany Company { get; }
+        public ICoreSessionContainer<Guid?, string> Company { get; }
 
-        public SessionUser User { get; }
+        public ICoreSessionContainer<string, string> User { get; }
 
-        public SessionOrganization Organization { get; }
+        public ISessionOrganization Organization { get; }
 
-        public SessionStore Store { get; }
+        [Obsolete]
+        public ICoreSessionContainer<Guid?, string> Store => Organization?.Store;
 
-        public SessionBroker Broker { get; }
+        public ICoreSessionContainer<string, string> Broker { get; }
     }
 }

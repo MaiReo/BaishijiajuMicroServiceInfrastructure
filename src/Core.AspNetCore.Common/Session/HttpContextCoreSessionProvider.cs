@@ -11,8 +11,6 @@ namespace Core.Session
             this._httpContextAccessor = httpContextAccessor;
         }
 
-        public ICoreSession Session => new HttpContextCoreSession(_httpContextAccessor);
-
-
+        public ICoreSession Session => new HttpHeaderCoreSession(() => _httpContextAccessor?.HttpContext?.Request?.Headers);
     }
 }

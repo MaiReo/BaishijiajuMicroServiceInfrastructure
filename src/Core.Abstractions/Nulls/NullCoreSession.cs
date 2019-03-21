@@ -1,29 +1,27 @@
-﻿namespace Core.Session
+﻿using System;
+
+namespace Core.Session
 {
     public class NullCoreSession : ICoreSession
     {
         public NullCoreSession()
         {
-            City = new SessionCity();
-            Company = new SessionCompany();
-            Organization = new SessionOrganization();
-            User = new SessionUser();
-            Store = new SessionStore();
-            Broker = new SessionBroker();
+
         }
-        
-        public SessionCity City { get; }
+
+        public ICoreSessionContainer<string> City => CoreSessionContainer.Create(default(string));
+
+        public ICoreSessionContainer<Guid?, string> Company => CoreSessionContainer.Create(default(Guid?), default);
+
+        [Obsolete]
+        public ICoreSessionContainer<Guid?, string> Store => Organization?.Store;
+
+        public ICoreSessionContainer<string, string> Broker => CoreSessionContainer.Create(default(string), default);
+
+        public ISessionOrganization Organization => new SessionOrganization();
+
+        public ICoreSessionContainer<string, string> User => CoreSessionContainer.Create(default(string), default);
 
         public static NullCoreSession Instance => new NullCoreSession();
-
-        public SessionCompany Company { get; }
-
-        public SessionUser User { get; }
-
-        public SessionOrganization Organization { get; }
-
-        public SessionStore Store { get; }
-
-        public SessionBroker Broker { get; }
     }
 }

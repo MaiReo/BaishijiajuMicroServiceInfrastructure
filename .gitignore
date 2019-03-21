@@ -130,3 +130,4 @@ src/MyCompanyName.AbpZeroTemplate.Web.Public/wwwroot/Common/_Bundles
 src/MyCompanyName.AbpZeroTemplate.Web.Public/wwwroot/view-resources/Views/_Bundles
 src/MyCompanyName.AbpZeroTemplate.Web.Public/wwwroot/view-resources/**/*.min.*
 src/MyCompanyName.AbpZeroTemplate.Web.Public/wwwroot/Common/**/*.min.*
+.DS_Store

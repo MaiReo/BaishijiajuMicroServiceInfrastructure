@@ -20,20 +20,22 @@ namespace Core.Abstractions.Tests
             string cityId,
             Guid? companyId,
             string companyName,
-            Guid? storeId,
-            string storeName,
+            Guid? groupId,
+            string groupName,
             string brokerId,
             string brokerName)
         {
             lock (this)
             {
                 var currentSession = Session;
-                var newSession = new UnitTestCoreSession(cityId,
-                    new SessionCompany(companyId, companyName),
+                var newSession = new UnitTestCoreSession(
+                    cityId,
+                    CoreSessionContainer.Create(companyId, companyName),
                     _currentUser,
-                    default,
-                    new SessionStore(storeId, storeName),
-                    new SessionBroker(brokerId, brokerName)
+                    new SessionOrganization(
+                        default,default,default,default,default,default,default,default,groupId,groupName
+                    ),
+                    CoreSessionContainer.Create(brokerId, brokerName)
                 );
                 var disposable = new SessionRestore(() => Restore(currentSession));
                 Session = newSession;

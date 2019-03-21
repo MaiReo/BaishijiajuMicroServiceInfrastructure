@@ -1,5 +1,6 @@
 ﻿namespace Core.Messages
 {
+    [System.Obsolete]
     public interface IMessageWithSession : IMessage
     {
         string CityId { get; }

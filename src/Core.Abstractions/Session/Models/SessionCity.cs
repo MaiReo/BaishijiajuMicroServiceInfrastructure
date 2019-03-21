@@ -4,16 +4,15 @@ using System.Text;
 
 namespace Core.Session
 {
-    public class SessionCity
+    [Obsolete]
+    internal class SessionCity : CoreSessionContainer<string>
     {
         public SessionCity()
         {
         }
 
-        public SessionCity(string id) : this()
+        public SessionCity(string id) : base(id)
         {
-            this.Id = id;
         }
-        public string Id { get; protected set; }
     }
 }

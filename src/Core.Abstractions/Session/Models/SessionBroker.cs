@@ -1,18 +1,15 @@
 ﻿namespace Core.Session
 {
-    public class SessionBroker
+    [System.Obsolete]
+    internal class SessionBroker : CoreSessionContainer<string>
     {
         public SessionBroker()
         {
         }
 
-        public SessionBroker(string id, string name = default) : this()
+        public SessionBroker(string id, string name = default) : base(id, name)
         {
-            Id = id;
-            Name = name;
+            
         }
-
-        public string Id { get; protected set; }
-        public string Name { get; protected set; }
     }
 }

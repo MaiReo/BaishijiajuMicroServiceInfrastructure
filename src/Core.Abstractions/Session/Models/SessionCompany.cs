@@ -2,20 +2,16 @@
 
 namespace Core.Session
 {
-    public class SessionCompany
+    [Obsolete]
+    internal sealed class SessionCompany : CoreSessionContainer<Guid?>
     {
         public SessionCompany()
         {
         }
 
-        public SessionCompany(Guid? id, string name = default) : this()
+        public SessionCompany(Guid? id, string name = default) : base(id, name)
         {
-            Id = id;
-            Name = name;
         }
 
-        public Guid? Id { get; protected set; }
-
-        public string Name { get; protected set; }
     }
 }

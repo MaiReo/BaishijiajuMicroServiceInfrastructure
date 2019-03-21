@@ -39,9 +39,6 @@ namespace Core.Abstractions.Tests
             descriptor.Headers.Add(SessionConsts.BrokerId, TestConsts.BROKER_ID);
             descriptor.Headers.Add(SessionConsts.BrokerName, UrlEncode(TestConsts.BROKER_NAME));
 
-            descriptor.Headers.Add(SessionConsts.OrganizationId, TestConsts.ORGANIZATION_ID);
-            descriptor.Headers.Add(SessionConsts.OrganizationName, UrlEncode(TestConsts.ORGANIZATION_NAME));
-
             descriptor.Headers.Add(SessionConsts.CurrentUserId, TestConsts.CURRENT_USER_ID);
             descriptor.Headers.Add(SessionConsts.CurrentUserName, UrlEncode(TestConsts.CURRENT_USER_NAME));
 
@@ -69,11 +66,13 @@ namespace Core.Abstractions.Tests
             session.Company.Name.ShouldNotBeNullOrWhiteSpace();
             session.Company.Name.ShouldBe(TestConsts.COMPANY_NAME);
 
-            session.Store.ShouldNotBeNull();
-            session.Store.Id.ShouldNotBeNull();
-            session.Store.Id.Value.ShouldBe(Guid.Parse(TestConsts.STORE_ID));
-            session.Store.Name.ShouldNotBeNullOrWhiteSpace();
-            session.Store.Name.ShouldBe(TestConsts.STORE_NAME);
+            session.Organization.ShouldNotBeNull();
+
+            session.Organization.Store.ShouldNotBeNull();
+            session.Organization.Store.Id.ShouldNotBeNull();
+            session.Organization.Store.Id.Value.ShouldBe(Guid.Parse(TestConsts.STORE_ID));
+            session.Organization.Store.Name.ShouldNotBeNullOrWhiteSpace();
+            session.Organization.Store.Name.ShouldBe(TestConsts.STORE_NAME);
 
             session.Broker.ShouldNotBeNull();
             session.Broker.Id.ShouldNotBeNullOrWhiteSpace();
@@ -81,11 +80,7 @@ namespace Core.Abstractions.Tests
             session.Broker.Name.ShouldNotBeNullOrWhiteSpace();
             session.Broker.Name.ShouldBe(TestConsts.BROKER_NAME);
 
-            session.Organization.ShouldNotBeNull();
-            session.Organization.Id.ShouldNotBeNullOrWhiteSpace();
-            session.Organization.Id.ShouldBe(TestConsts.ORGANIZATION_ID);
-            session.Organization.Name.ShouldNotBeNullOrWhiteSpace();
-            session.Organization.Name.ShouldBe(TestConsts.ORGANIZATION_NAME);
+     
 
             session.User.ShouldNotBeNull();
             session.User.Id.ShouldNotBeNullOrWhiteSpace();

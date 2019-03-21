@@ -52,11 +52,12 @@ namespace Core.Abstractions.Tests.Messages
             _session.Company.Name.ShouldNotBeNullOrWhiteSpace();
             _session.Company.Name.ShouldBe(TestConsts.COMPANY_NAME);
 
-            _session.Store.ShouldNotBeNull();
-            _session.Store.Id.ShouldNotBeNull();
-            _session.Store.Id.Value.ShouldBe(Guid.Parse(TestConsts.STORE_ID));
-            _session.Store.Name.ShouldNotBeNullOrWhiteSpace();
-            _session.Store.Name.ShouldBe(TestConsts.STORE_NAME);
+            _session.Organization.ShouldNotBeNull();
+            _session.Organization.Store.ShouldNotBeNull();
+            _session.Organization.Store.Id.ShouldNotBeNull();
+            _session.Organization.Store.Id.Value.ShouldBe(Guid.Parse(TestConsts.STORE_ID));
+            _session.Organization.Store.Name.ShouldNotBeNullOrWhiteSpace();
+            _session.Organization.Store.Name.ShouldBe(TestConsts.STORE_NAME);
 
             _session.Broker.ShouldNotBeNull();
             _session.Broker.Id.ShouldNotBeNullOrWhiteSpace();
@@ -64,9 +65,7 @@ namespace Core.Abstractions.Tests.Messages
             _session.Broker.Name.ShouldNotBeNullOrWhiteSpace();
             _session.Broker.Name.ShouldBe(TestConsts.BROKER_NAME);
 
-            _session.Organization.ShouldNotBeNull();
-            _session.Organization.Id.ShouldBeNullOrWhiteSpace();
-            _session.Organization.Name.ShouldBeNullOrWhiteSpace();
+           
 
             _session.User.ShouldNotBeNull();
             _session.User.Id.ShouldNotBeNullOrWhiteSpace();

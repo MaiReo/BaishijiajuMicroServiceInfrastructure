@@ -22,7 +22,7 @@ namespace Core.Abstractions.Tests
             Resolve<UnitTestCurrentUser>().Set(userId, userName);
         }
 
-        protected SessionUser CurrentUser => Resolve<UnitTestCurrentUser>();
+        protected ICoreSessionContainer<string, string> CurrentUser => Resolve<UnitTestCurrentUser>();
 
         protected virtual bool UseDomainMessagePublisher { get; }
 
@@ -30,14 +30,14 @@ namespace Core.Abstractions.Tests
         {
             if (UseDomainMessagePublisher)
             {
-                 LocalIocManager.IocContainer.Register(
-                    Component
-                    .For<IMessagePublisherWrapper>()
-                    .ImplementedBy<DomainMessagePublisherWrapper>()
-                    .NamedAutomatically(nameof(DomainMessagePublisherWrapper))
-                    .LifestyleTransient()
-                    .IsDefault()
-                );
+                LocalIocManager.IocContainer.Register(
+                   Component
+                   .For<IMessagePublisherWrapper>()
+                   .ImplementedBy<DomainMessagePublisherWrapper>()
+                   .NamedAutomatically(nameof(DomainMessagePublisherWrapper))
+                   .LifestyleTransient()
+                   .IsDefault()
+               );
             }
         }
 

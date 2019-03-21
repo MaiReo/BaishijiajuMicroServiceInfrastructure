@@ -2,10 +2,8 @@
 
 namespace Core.PersistentStore
 {
-    public interface IMayHaveStore
+    public interface IMayHaveStore : IMayHaveStoreId
     {
-        Guid? StoreId { get; set; }
-
         string StoreName { get; set; }
     }
 }
