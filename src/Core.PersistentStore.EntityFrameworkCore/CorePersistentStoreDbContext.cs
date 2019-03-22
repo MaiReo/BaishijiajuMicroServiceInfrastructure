@@ -218,32 +218,61 @@ namespace Core.PersistentStore
 
         private void PerformDepartment(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveDepartmentId entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
             {
-                if (entity.DepartmentId == default)
+                if (entry.Entity is IMayHaveDepartmentId haveIdEntity)
                 {
-                    entity.DepartmentId = CurrentDepartmentId;
+                    if (haveIdEntity.DepartmentId == default)
+                    {
+                        haveIdEntity.DepartmentId = CurrentDepartmentId;
+                    }
+                }
+                if (entry.Entity is IMayHaveDepartment entity)
+                {
+                    if (string.IsNullOrWhiteSpace(entity.DepartmentName))
+                    {
+                        entity.DepartmentName = CurrentDepartmentName;
+                    }
                 }
             }
         }
         private void PerformBigRegion(EntityEntry entry)
         {
-
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveBigRegionId entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
             {
-                if (entity.BigRegionId == default)
+                if (entry.Entity is IMayHaveBigRegionId haveIdEntity)
                 {
-                    entity.BigRegionId = CurrentBigRegionId;
+                    if (haveIdEntity.BigRegionId == default)
+                    {
+                        haveIdEntity.BigRegionId = CurrentBigRegionId;
+                    }
+                }
+                if (entry.Entity is IMayHaveBigRegion entity)
+                {
+                    if (string.IsNullOrWhiteSpace(entity.BigRegionName))
+                    {
+                        entity.BigRegionName = CurrentBigRegionName;
+                    }
                 }
             }
         }
         private void PerformRegion(EntityEntry entry)
         {
-            if (entry.State == EntityState.Added && entry.Entity is IEntityBase && entry.Entity is IMayHaveRegionId entity)
+            if (entry.State == EntityState.Added && entry.Entity is IEntityBase)
             {
-                if (entity.RegionId == default)
+                if (entry.Entity is IMayHaveRegionId haveIdEntity)
                 {
-                    entity.RegionId = CurrentRegionId;
+                    if (haveIdEntity.RegionId == default)
+                    {
+                        haveIdEntity.RegionId = CurrentRegionId;
+                    }
+                }
+                if (entry.Entity is IMayHaveRegion entity)
+                {
+                    if (string.IsNullOrWhiteSpace(entity.RegionName))
+                    {
+                        entity.RegionName = CurrentRegionName;
+                    }
                 }
             }
         }

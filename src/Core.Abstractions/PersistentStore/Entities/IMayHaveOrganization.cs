@@ -1,7 +1,7 @@
 namespace Core.PersistentStore
 {
-    public interface IMayHaveOrganization : IMayHaveDepartmentId, IMayHaveBigRegionId, IMayHaveRegionId, IMayHaveStoreId
+    public interface IMayHaveOrganization : IMayHaveDepartment, IMayHaveBigRegion, IMayHaveRegion, IMayHaveStore
     {
-        
+
     }
 }
