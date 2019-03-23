@@ -9,27 +9,7 @@ namespace Core.Session
         public CoreSession()
         {
         }
-
-        [Obsolete]
-        public CoreSession(string cityId,
-                    Guid? companyId, string companyName,
-                    Guid? storeId, string storeName,
-                    string brokerId, string brokerName,
-                    string organizationId, string organizationName,
-                    string currentUserId, string currentUserName)
-        {
-            City = new SessionCity(cityId);
-            Company = new SessionCompany(companyId, companyName);
-            Broker = new SessionBroker(brokerId, brokerName);
-            Organization = new SessionOrganization(
-                null, null,
-                null, null,
-                null, null,
-                storeId, storeName,
-                null, null);
-            User = new SessionUser(currentUserId, currentUserName);
-        }
-
+        
         public CoreSession(string cityId,
             Guid? companyId, string companyName,
             Guid? departmentId, string departmentName,

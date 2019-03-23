@@ -108,18 +108,5 @@ namespace Core.Session.Providers
             }
             return null;
         }
-
-        [System.Obsolete]
-        private ICoreSession ParseSession(IMessageWithSession withSessionMessage)
-        {
-
-            var session = new CoreSession(withSessionMessage.CityId,
-                withSessionMessage.CompanyId?.AsGuidOrNull(), string.IsNullOrWhiteSpace(withSessionMessage.CompanyName) ? null : System.Web.HttpUtility.UrlDecode(withSessionMessage.CompanyName),
-                withSessionMessage.StoreId?.AsGuidOrNull(), string.IsNullOrWhiteSpace(withSessionMessage.StoreName) ? null : System.Web.HttpUtility.UrlDecode(withSessionMessage.StoreName),
-                withSessionMessage.BrokerId, string.IsNullOrWhiteSpace(withSessionMessage.BrokerName) ? null : System.Web.HttpUtility.UrlDecode(withSessionMessage.BrokerName),
-                withSessionMessage.OrganizationId, string.IsNullOrWhiteSpace(withSessionMessage.OrganizationName) ? null : System.Web.HttpUtility.UrlDecode(withSessionMessage.OrganizationName),
-                withSessionMessage.CurrentUserId, string.IsNullOrWhiteSpace(withSessionMessage.CurrentUserName) ? null : System.Web.HttpUtility.UrlDecode(withSessionMessage.CurrentUserName));
-            return session;
-        }
     }
 }

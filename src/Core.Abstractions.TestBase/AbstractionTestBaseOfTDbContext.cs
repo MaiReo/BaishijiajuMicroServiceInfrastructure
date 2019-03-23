@@ -55,10 +55,10 @@ namespace Core.TestBase
         protected void UsingDbContext(Action<TDbContext> action,
            string cityId = default,
            Guid? companyId = default, string companyName = default,
-           Guid? storeId = default, string storeName = default,
+           Guid? groupId = default, string groupName = default,
            string brokerId = default, string brokerName = default)
         {
-            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, companyName, storeId, storeName, brokerId, brokerName))
+            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, companyName, groupId, groupName, brokerId, brokerName))
             using (var dbContext = Resolve<IDbContextResolver<TDbContext>>().GetDbContext())
             {
                 action?.Invoke(dbContext);
@@ -69,10 +69,10 @@ namespace Core.TestBase
         protected T UsingDbContext<T>(Func<TDbContext, T> func,
            string cityId = default,
            Guid? companyId = default, string companyName = default,
-           Guid? storeId = default, string storeName = default,
+           Guid? groupId = default, string groupName = default,
            string brokerId = default, string brokerName = default)
         {
-            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, companyName, storeId, storeName, brokerId, brokerName))
+            using (Resolve<UnitTestCoreSessionProvider>().Use(cityId, companyId, companyName, groupId, groupName, brokerId, brokerName))
             using (var dbContext = Resolve<IDbContextResolver<TDbContext>>().GetDbContext())
             {
                 var returnValue = func(dbContext);
