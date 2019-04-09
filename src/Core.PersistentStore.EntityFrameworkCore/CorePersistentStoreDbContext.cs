@@ -521,12 +521,12 @@ namespace Core.PersistentStore
 
             if (typeof(IMayHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompanyId)e).CompanyId == CurrentCompanyId || (((IMayHaveCompanyId)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMayHaveCompany)e).CompanyId == CurrentCompanyId) == IsMayHaveCompanyFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMayHaveCompanyId)e).CompanyId == CurrentCompanyId || (((IMayHaveCompanyId)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMayHaveCompanyId)e).CompanyId == CurrentCompanyId) == IsMayHaveCompanyFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
             if (typeof(IMustHaveCompanyId).IsAssignableFrom(typeof(TEntity)))
             {
-                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompanyId)e).CompanyId == CurrentCompanyId || (((IMustHaveCompanyId)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMustHaveCompany)e).CompanyId == CurrentCompanyId) == IsMustHaveCompanyFilterEnabled;
+                Expression<Func<TEntity, bool>> filter = e => ((IMustHaveCompanyId)e).CompanyId == CurrentCompanyId || (((IMustHaveCompanyId)e).CompanyId != CurrentCompanyId && CurrentCompanyId == null) || (((IMustHaveCompanyId)e).CompanyId == CurrentCompanyId) == IsMustHaveCompanyFilterEnabled;
                 expression = expression.AndAlsoOrDefault(filter);
             }
 
