@@ -40,7 +40,7 @@ namespace Abp.Modules
             IocManager.RegisterIfNot<HttpMessageHandler, HttpClientHandler>();
             IocManager.RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>();
             IocManager.RegisterIfNot<IServiceHelper, DefaultServiceHelper>();
-            IocManager.RegisterIfNot<IRPCService, RPCService>();
+            IocManager.RegisterIfNot<IRPCService, RPCService>(DependencyLifeStyle.Transient);
             IocManager.RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>();
             IocManager.RegisterIfNot<IServiceHelper, NullServiceHelper>();
             IocManager.RegisterIfNot<IServiceDiscoveryHelper, NullServiceDiscoveryHelper>();

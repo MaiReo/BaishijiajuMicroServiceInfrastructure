@@ -38,7 +38,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{C95FFEA8-08CA-44E0-A1DA-31F04246544A}"
 	ProjectSection(SolutionItems) = preProject
 		common.props = common.props
-		global.json = global.json
 		meta.props = meta.props
 		sign.props = sign.props
 		target-app.props = target-app.props

@@ -32,7 +32,7 @@ namespace Core.Abstractions
                    .RegisterIfNot<IServiceHelper, DefaultServiceHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<HttpMessageHandler, HttpClientHandler>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IHttpClientWrapper, HttpClientWrapper>(ServiceLifetime.Singleton)
-                   .RegisterIfNot<IRPCService, RPCService>(ServiceLifetime.Singleton)
+                   .RegisterIfNot<IRPCService, RPCService>(ServiceLifetime.Transient)
                    .RegisterIfNot<IBackgroundJobHelper, NullBackgroundJobHelper>(ServiceLifetime.Singleton)
                    .RegisterIfNot<ICoreSession, NullCoreSession>(ServiceLifetime.Singleton)
                    .RegisterIfNot<IServiceHelper, NullServiceHelper>(ServiceLifetime.Singleton)
